@@ -8,6 +8,8 @@ import yaml
 # Check if the current working tree contains a pantheon2.yml file
 def get_yaml_file():
 
+    yaml_location = ''
+
     is_pantheon_repo = False
 
     path_components = os.getcwd().split(os.sep)
@@ -52,3 +54,95 @@ def count_content(yaml_file_location):
         content_counts['modules'] += len(glob.glob(module))
 
     return content_counts
+
+
+# Get the target files
+def get_content(yaml_file_location):
+
+    content_list = []
+
+    with open(yaml_file_location + 'pantheon2.yml', 'r') as f:
+
+        main_yaml_file = yaml.load(f)
+
+    # Generate unique list of assemblies
+    if "assemblies" in main_yaml_file:
+
+        for assembly in main_yaml_file["assemblies"]:
+
+            for assembly_file in glob.glob(assembly):
+
+                if assembly_file not in content_list:
+                    
+                    content_list.append(assembly_file)
+
+    # Generate unique list of modules
+    if "modules" in main_yaml_file:
+
+        for module in main_yaml_file["modules"]:
+
+            for module_file in glob.glob(module):
+
+                if module_file not in content_list:
+                    
+                    content_list.append(module_file)
+
+    return(sorted(content_list, key=str.lower))
+
+
+# Get content subset
+def get_content_subset(files):
+
+    content_list = []
+
+    for content_file in glob.glob(files):
+
+        if content_file.endswith('.adoc') and content_file not in content_list:
+
+            content_list.append(content_file)
+
+    return(sorted(content_list, key=str.lower))
+
+
+# Get duplicate entries
+def get_duplicates(yaml_file_location):
+
+    content_list = []
+    content_duplicates = []
+ 
+    with open(yaml_file_location + 'pantheon2.yml', 'r') as f:
+
+        main_yaml_file = yaml.load(f)
+
+    # Generate unique list of assemblies
+    if "assemblies" in main_yaml_file:
+
+        for assembly in main_yaml_file["assemblies"]:
+
+            for assembly_file in glob.glob(assembly):
+
+                if assembly_file not in content_list:
+
+                    content_list.append(assembly_file)
+
+                else:
+                    
+                    content_duplicates.append(assembly_file)
+
+    # Generate unique list of modules
+    if "modules" in main_yaml_file:
+
+        for module in main_yaml_file["modules"]:
+
+            for module_file in glob.glob(module):
+
+                if module_file not in content_list:
+
+                    content_list.append(module_file)
+
+                else:
+
+                    content_duplicates.append(module_file)
+
+    return(sorted(content_duplicates, key=str.lower))
+

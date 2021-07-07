@@ -5,6 +5,7 @@ import os
 import pcbuild
 import pcutil
 import shutil
+import signal
 import sys
 
 
@@ -35,7 +36,18 @@ def parse_args():
     # 'Clean' command
     parser_b = subparsers.add_parser('clean', help='Clean the build directory.')
 
+    # 'Duplicates' command
+    parser_c = subparsers.add_parser('duplicates', help='Enumerate duplicate entries in your pantheon2.yml file.')
+
     return parser.parse_args()
+
+
+# Define keyboard interrupt cleanup process
+def keyboardInterruptHandler(signal, frame):
+
+    print("Operation cancelled; exiting...")
+
+    exit(0)
 
 
 # MAIN ROUTINE
@@ -47,40 +59,38 @@ if __name__ == "__main__":
     # Parse arguments
     args = parse_args()
 
-    # Exit if not a Pantheon 2 repository
-    if not pcutil.get_yaml_file():
+    # Add custom keyboard interrupt handler
+    signal.signal(signal.SIGINT, keyboardInterruptHandler)
+
+    # Get the location of the pantheon2.yml file, if any
+    yaml_file_location = pcutil.get_yaml_file()
+
+    # Exit if not a Pantheon V2 repository
+    if not yaml_file_location:
 
         print("No pantheon2.yml file detected; exiting...")
 
-        sys.exit(2)
+        sys.exit(1)
 
     # Else parse actions
     # Action - compile
     elif args.command == 'compile':
 
-        try:
+        if args.files:
 
-            if args.files:
+            pcbuild.build_content(pcutil.get_content_subset(args.files), yaml_file_location, args.lang)
 
-                pcbuild.build_subset(args.files,args.lang)
+        else:
+
+            if os.path.exists('pantheon2.yml'):
+
+                pcbuild.build_content(pcutil.get_content(yaml_file_location), yaml_file_location, args.lang)
 
             else:
 
-                if os.path.exists('pantheon2.yml'):
+                print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")
 
-                    pcbuild.build_all(args.lang)
-
-                else:
-
-                    print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")
-
-                    sys.exit(2)
-
-        except (KeyboardInterrupt, OSError) as e:
-
-            print("Operation cancelled; exiting...")
-
-            sys.exit(0)
+                sys.exit(1)
 
     # Action - clean
     elif args.command == 'clean':
@@ -90,3 +100,24 @@ if __name__ == "__main__":
             shutil.rmtree('build')
 
             print("Successfully removed build directory!")
+
+    # Action - find duplicate entries
+    elif args.command == 'duplicates':
+
+        duplicates = pcutil.get_duplicates(pcutil.get_yaml_file())
+
+        if duplicates:
+
+            print("Your pantheon2.yml contains the following duplicate entries:\n")
+
+            for duplicate in duplicates:
+
+                print(duplicate)
+
+            print()
+
+            print("Total: " + str(len(duplicates)))
+
+        else:
+
+            print("No duplicates found.")
