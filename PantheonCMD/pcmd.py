@@ -104,7 +104,7 @@ if __name__ == "__main__":
     # Action - find duplicate entries
     elif args.command == 'duplicates':
 
-        duplicates = pcutil.get_duplicates(pcutil.get_yaml_file())
+        duplicates = pcutil.get_duplicates(yaml_file_location)
 
         if duplicates:
 
