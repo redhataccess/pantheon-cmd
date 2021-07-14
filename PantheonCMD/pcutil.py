@@ -95,3 +95,20 @@ def get_duplicates(yaml_file_location):
         main_yaml_file = yaml.safe_load(f)
         content_list, content_duplicates = get_files(main_yaml_file, "assemblies", "modules")
     return(sorted(content_duplicates, key=str.lower))
+
+
+def get_existence(content_list):
+    files_found = []
+    files_not_found = []
+
+    for item in content_list:
+        if os.path.exists(item):
+            files_found.append(item)
+        else:
+            files_not_found.append(item)
+    return files_found, files_not_found
+
+
+def get_not_exist(content_list):
+    files_found, files_not_found = get_existence(content_list)
+    return(sorted(files_not_found, key=str.lower))
