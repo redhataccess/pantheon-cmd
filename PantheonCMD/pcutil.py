@@ -104,15 +104,14 @@ def get_content_subset(files):
     return(sorted(content_list, key=str.lower))
 
 
-# Get duplicate entries
-def get_duplicates(yaml_file_location):
+def get_files(yaml_file_location):
 
     content_list = []
     content_duplicates = []
- 
-    with open(yaml_file_location + 'pantheon2.yml', 'r') as f:
 
-        main_yaml_file = yaml.load(f)
+    with open(yaml_file_location, 'r') as f:
+
+        main_yaml_file = yaml.safe_load(f)
 
     # Generate unique list of assemblies
     if "assemblies" in main_yaml_file:
@@ -126,7 +125,7 @@ def get_duplicates(yaml_file_location):
                     content_list.append(assembly_file)
 
                 else:
-                    
+
                     content_duplicates.append(assembly_file)
 
     # Generate unique list of modules
@@ -144,5 +143,14 @@ def get_duplicates(yaml_file_location):
 
                     content_duplicates.append(module_file)
 
-    return(sorted(content_duplicates, key=str.lower))
+    return content_list, content_duplicates
 
+
+def get_content(yaml_file_location):
+    content_list, content_duplicates = get_files(yaml_file_location)
+    return(sorted(content_list, key=str.lower))
+
+
+def get_duplicates(yaml_file_location):
+    content_list, content_duplicates = get_files(yaml_file_location)
+    return(sorted(content_duplicates, key=str.lower))
