@@ -3,7 +3,7 @@
 import glob
 import os
 import yaml
-
+import re
 
 # Check if the current working tree contains a pantheon2.yml file
 def get_yaml_file():
@@ -57,53 +57,41 @@ def get_content_subset(files):
     return(sorted(content_list, key=str.lower))
 
 
-def get_files(yaml_file_location):
+def get_files(main_yaml_file, *arguments):
 
     content_list = []
     content_duplicates = []
+    wildcards = re.compile(r'[*?\[\]]')
 
-    with open(yaml_file_location, 'r') as f:
+    # modules and assemblies as arguments
+    for argument in arguments:
+        if argument not in main_yaml_file:
+            continue
 
-        main_yaml_file = yaml.safe_load(f)
+        for item in main_yaml_file[argument]:
+            # checks if string has a wildcard to use glob.glob
+            if wildcards.search(item):
+                files = glob.glob(item)
+            else:
+                files = [item]
 
-    # Generate unique list of assemblies
-    if "assemblies" in main_yaml_file:
-
-        for assembly in main_yaml_file["assemblies"]:
-
-            for assembly_file in glob.glob(assembly):
-
-                if assembly_file not in content_list:
-
-                    content_list.append(assembly_file)
-
+            for file in files:
+                if file not in content_list:
+                    content_list.append(file)
                 else:
-
-                    content_duplicates.append(assembly_file)
-
-    # Generate unique list of modules
-    if "modules" in main_yaml_file:
-
-        for module in main_yaml_file["modules"]:
-
-            for module_file in glob.glob(module):
-
-                if module_file not in content_list:
-
-                    content_list.append(module_file)
-
-                else:
-
-                    content_duplicates.append(module_file)
-
+                    content_duplicates.append(file)
     return content_list, content_duplicates
 
 
 def get_content(yaml_file_location):
-    content_list, content_duplicates = get_files(yaml_file_location)
+    with open(yaml_file_location, 'r') as f:
+        main_yaml_file = yaml.safe_load(f)
+        content_list, content_duplicates = get_files(main_yaml_file, "assemblies", "modules")
     return(sorted(content_list, key=str.lower))
 
 
 def get_duplicates(yaml_file_location):
-    content_list, content_duplicates = get_files(yaml_file_location)
+    with open(yaml_file_location, 'r') as f:
+        main_yaml_file = yaml.safe_load(f)
+        content_list, content_duplicates = get_files(main_yaml_file, "assemblies", "modules")
     return(sorted(content_duplicates, key=str.lower))
