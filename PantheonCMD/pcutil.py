@@ -56,40 +56,6 @@ def count_content(yaml_file_location):
     return content_counts
 
 
-# Get the target files
-def get_content(yaml_file_location):
-
-    content_list = []
-
-    with open(yaml_file_location + 'pantheon2.yml', 'r') as f:
-
-        main_yaml_file = yaml.load(f)
-
-    # Generate unique list of assemblies
-    if "assemblies" in main_yaml_file:
-
-        for assembly in main_yaml_file["assemblies"]:
-
-            for assembly_file in glob.glob(assembly):
-
-                if assembly_file not in content_list:
-                    
-                    content_list.append(assembly_file)
-
-    # Generate unique list of modules
-    if "modules" in main_yaml_file:
-
-        for module in main_yaml_file["modules"]:
-
-            for module_file in glob.glob(module):
-
-                if module_file not in content_list:
-                    
-                    content_list.append(module_file)
-
-    return(sorted(content_list, key=str.lower))
-
-
 # Get content subset
 def get_content_subset(files):
 
