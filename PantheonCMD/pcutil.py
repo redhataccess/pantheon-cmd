@@ -41,7 +41,7 @@ def count_content(yaml_file_location):
     # Parse the main YAML file
     with open(yaml_file_location + 'pantheon2.yml', 'r') as f:
 
-        main_yaml_file = yaml.load(f)
+        main_yaml_file = yaml.safe_load(f)
 
     # Count assemblies
     for assembly in main_yaml_file["assemblies"]:
