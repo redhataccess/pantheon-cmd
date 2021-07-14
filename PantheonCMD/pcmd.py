@@ -114,9 +114,7 @@ if __name__ == "__main__":
 
                 print(duplicate)
 
-            print()
-
-            print("Total: " + str(len(duplicates)))
+            print("\nTotal: ", str(len(exists)))
 
         else:
 
