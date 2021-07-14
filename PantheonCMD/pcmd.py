@@ -39,6 +39,9 @@ def parse_args():
     # 'Duplicates' command
     parser_c = subparsers.add_parser('duplicates', help='Enumerate duplicate entries in your pantheon2.yml file.')
 
+    # 'Exists' command
+    parser_d = subparsers.add_parser('exists', help='Enumerate entries in your pantheon2.yml file that do not exist in path.')
+
     return parser.parse_args()
 
 
@@ -119,3 +122,22 @@ if __name__ == "__main__":
         else:
 
             print("No duplicates found.")
+
+    # Action - find nonexistent files
+    elif args.command == 'exists':
+
+        exists = pcutil.get_not_exist(pcutil.get_content(pcutil.get_yaml_file()))
+
+        if exists:
+
+            print("Your pantheon2.yml contains the following files that do not exist in path:\n")
+
+            for exist in exists:
+
+                print(exist)
+
+            print("\nTotal: ", str(len(exists)))
+
+        else:
+
+            print("All files exist in path.")
