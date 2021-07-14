@@ -24,7 +24,7 @@ def parse_args():
     # Main parser
     parser = argparse.ArgumentParser(prog='pcmd')
     parser = argparse.ArgumentParser(description='Preview and validate modular content from the command line.')
-    
+
     # Main subparsers
     subparsers = parser.add_subparsers(dest='command')
 
@@ -114,7 +114,7 @@ if __name__ == "__main__":
 
                 print(duplicate)
 
-            print("\nTotal: ", str(len(exists)))
+            print("\nTotal: ", str(len(duplicates)))
 
         else:
 
