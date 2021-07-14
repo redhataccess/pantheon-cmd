@@ -7,29 +7,16 @@ import yaml
 
 # Check if the current working tree contains a pantheon2.yml file
 def get_yaml_file():
-
-    yaml_location = ''
-
-    is_pantheon_repo = False
-
     path_components = os.getcwd().split(os.sep)
 
-    path_base = ""
+    while path_components:
+        yaml_location = os.sep.join(path_components) + os.sep + 'pantheon2.yml'
+        if os.path.exists(yaml_location):
+            return yaml_location
 
-    # Iterate through the paths to PWD and see if one contains the file
-    for path_component in path_components:
+        path_components.pop()
 
-        path_base = path_base + path_component + os.sep
-
-        if os.path.exists(path_base + 'pantheon2.yml'):
-
-            is_pantheon_repo = True
-
-            yaml_location = path_base
-
-            break
-
-    return yaml_location
+    return None
 
 
 # Count the number of assemblies and modules in a pantheon2.yml file
