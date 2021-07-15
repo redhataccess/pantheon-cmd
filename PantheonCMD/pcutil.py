@@ -5,6 +5,7 @@ import os
 import yaml
 import re
 
+
 # Check if the current working tree contains a pantheon2.yml file
 def get_yaml_file():
     path_components = os.getcwd().split(os.sep)
@@ -112,3 +113,8 @@ def get_existence(content_list):
 def get_not_exist(content_list):
     files_found, files_not_found = get_existence(content_list)
     return(sorted(files_not_found, key=str.lower))
+
+
+def get_exist(content_list):
+    files_found, files_not_found = get_existence(content_list)
+    return(sorted(files_found, key=str.lower))
