@@ -130,7 +130,7 @@ if __name__ == "__main__":
 
         if exists:
 
-            print("Your pantheon2.yml contains the following files that do not exist in path:\n")
+            print("Your pantheon2.yml contains the following files that do not exist in your repository:\n")
 
             for exist in exists:
 
@@ -140,4 +140,4 @@ if __name__ == "__main__":
 
         else:
 
-            print("All files exist in path.")
+            print("All files exist.")
