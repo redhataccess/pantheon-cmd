@@ -7,6 +7,7 @@ import pcutil
 import shutil
 import signal
 import sys
+from pcvalidator import validation, Report
 
 
 # Prints the default header
@@ -41,6 +42,9 @@ def parse_args():
 
     # 'Exists' command
     parser_d = subparsers.add_parser('exists', help='Enumerate entries in your pantheon2.yml file that do not exist in path.')
+
+    # 'Validate' command
+    parser_e = subparsers.add_parser('validate', help='Validate entries in your pantheon2.yml file.')
 
     return parser.parse_args()
 
@@ -141,3 +145,14 @@ if __name__ == "__main__":
         else:
 
             print("All files exist.")
+
+    # Action - find nonexistent files
+    elif args.command == 'validate':
+
+        validate = validation(pcutil.get_exist(pcutil.get_content(pcutil.get_yaml_file())))
+
+        if validate.count !=0:
+            print("Your pantheon2.yml contains the following files that did not pass validation:\n")
+            validate.print_report()
+        else:
+            print("All files passed validation.")
