@@ -132,27 +132,34 @@ if __name__ == "__main__":
 
         exists = pcutil.get_not_exist(pcutil.get_content(pcutil.get_yaml_file()))
 
-        if exists:
+        if os.path.exists('pantheon2.yml'):
 
-            print("Your pantheon2.yml contains the following files that do not exist in your repository:\n")
+            if exists:
 
-            for exist in exists:
+                print("Your pantheon2.yml contains the following files that do not exist in your repository:\n")
 
-                print(exist)
+                for exist in exists:
 
-            print("\nTotal: ", str(len(exists)))
+                    print(exist)
 
+                print("\nTotal: ", str(len(exists)))
+
+            else:
+
+                print("All files exist.")
         else:
-
-            print("All files exist.")
+            print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")
 
     # Action - find nonexistent files
     elif args.command == 'validate':
 
         validate = validation(pcutil.get_exist(pcutil.get_content(pcutil.get_yaml_file())))
 
-        if validate.count !=0:
-            print("Your pantheon2.yml contains the following files that did not pass validation:\n")
-            validate.print_report()
+        if os.path.exists('pantheon2.yml'):
+            if validate.count != 0:
+                print("Your pantheon2.yml contains the following files that did not pass validation:\n")
+                validate.print_report()
+            else:
+                print("All files passed validation.")
         else:
-            print("All files passed validation.")
+            print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")
