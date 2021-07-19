@@ -44,6 +44,7 @@ class Regex:
     NESTED_MODULES = re.compile(r'include.*(proc|con|ref)_([a-z|0-9|A-Z|\-|_]+)\.adoc(\[.*\])')
     RELATED_INFO = re.compile(r'= Related information|.Related information', re.IGNORECASE)
     ADDITIONAL_RES = re.compile(r'= Additional resources|\.Additional resources', re.IGNORECASE)
+    ADD_RES_TAG = re.compile(r'\[role="_additional-resources"]')
     ADD_RES_ASSEMBLY = re.compile(r'== Additional resources', re.IGNORECASE)
     ADD_RES_MODULE = re.compile(r'\.Additional resources', re.IGNORECASE)
     EMPTY_LINE_AFTER_ADD_RES_TAG = re.compile(r'\[role="_additional-resources"]\n(?=\n)')
@@ -94,9 +95,15 @@ def html_markup_check(stripped_file):
 def nesting_in_modules_check(report, stripped_file, file_path):
     """Check if modules contains nested content."""
     if re.findall(Regex.NESTED_ASSEMBLY, stripped_file):
-        return report.create_report('nesting in modules. nesting', file_path)
+        report.create_report('nesting in modules. nesting', file_path)
     if re.findall(Regex.NESTED_MODULES, stripped_file):
-        return report.create_report('nesting in modules. nesting', file_path)
+        report.create_report('nesting in modules. nesting', file_path)
+
+
+# Standalone check on modules_found
+def add_res_section_module_check(report, stripped_file, file_path):
+    if not re.findall(Regex.ADD_RES_MODULE, stripped_file):
+        report.create_report("Additional resources section for modules should be `.Additional resources`. Wrong section name was", file_path)
 
 
 # Standalone check on assemblies_found
@@ -104,6 +111,12 @@ def nesting_in_assemblies_check(report, stripped_file, file_path):
     """Check if file contains nested assemblies."""
     if re.findall(Regex.NESTED_ASSEMBLY, stripped_file):
         return report.create_report('nesting in assemblies. nesting', file_path)
+
+
+# Standalone check on assemblies_found
+def add_res_section_assembly_check(report, stripped_file, file_path):
+    if not re.findall(Regex.ADD_RES_ASSEMBLY, stripped_file):
+        return report.create_report("additional resources section for assemblies should be `== Additional resources`. Wrong section name was", file_path)
 
 
 def lvloffset_check(stripped_file):
@@ -124,8 +137,80 @@ def abstract_tag_check(original_file):
         return True
 
 
+def related_info_check(stripped_file):
+    """Checks if everything related to additional resources section is OK"""
+    if re.findall(Regex.RELATED_INFO, stripped_file):
+        return True
+
+
+def add_res_tag_missing(stripped_file):
+    if re.findall(Regex.ADDITIONAL_RES, stripped_file):
+        if stripped_file.count(Tags.ADD_RES) == 0:
+            return True
+
+
+def add_res_tag_multiple(stripped_file):
+    if stripped_file.count(Tags.ADD_RES) > 1:
+        return True
+
+
+def add_res_tag_without_header(stripped_file):
+    if re.findall(Regex.ADD_RES_TAG, stripped_file):
+        if not re.findall(Regex.ADDITIONAL_RES, stripped_file):
+            return True
+
+
+def empty_line_after_add_res_tag(stripped_file, original_file):
+    if stripped_file.count(Tags.ADD_RES) == 1:
+        if re.findall(Regex.EMPTY_LINE_AFTER_ADD_RES_TAG, original_file):
+            return True
+
+
+def comment_after_add_res_tag(stripped_file, original_file):
+    if stripped_file.count(Tags.ADD_RES) == 1:
+        if re.findall(Regex.COMMENT_AFTER_ADD_RES_TAG, original_file):
+            return True
+
+
+def empty_line_after_add_res_header(stripped_file, original_file):
+    if stripped_file.count(Tags.ADD_RES) == 1:
+        if re.findall(Regex.EMPTY_LINE_AFTER_ADD_RES_HEADER, original_file):
+            return True
+
+
+# gives false positives if there's a normal and a commented out add res section 
+def comment_after_add_res_header(stripped_file, original_file):
+    if stripped_file.count(Tags.ADD_RES) == 1:
+        if re.findall(Regex.COMMENT_AFTER_ADD_RES_HEADER, original_file):
+            return True
+
+
 def checks(report, stripped_file, original_file, file_path):
     """Run the checks."""
+    if related_info_check(stripped_file):
+        report.create_report('"Related information" section was', file_path)
+
+    if add_res_tag_missing(stripped_file):
+        report.create_report('additional resources tag not', file_path)
+
+    if add_res_tag_multiple(stripped_file):
+        report.create_report('multiple additional resources tags were', file_path)
+
+    if add_res_tag_without_header(stripped_file):
+        report.create_report('additional resources tag without the Additional resources header was', file_path)
+
+    if empty_line_after_add_res_tag(stripped_file, original_file):
+        report.create_report('an empty line after the additional resources tag was', file_path)
+
+    if empty_line_after_add_res_header(stripped_file, original_file):
+        report.create_report('an empty line after the additional resources header was', file_path)
+
+    if comment_after_add_res_tag(stripped_file, original_file):
+        report.create_report('a comment after the additional resources tag was', file_path)
+
+    if comment_after_add_res_header(stripped_file, original_file):
+        report.create_report('a comment after the additional resources header was', file_path)
+
     if vanilla_xref_check(stripped_file):
         report.create_report('vanilla xrefs', file_path)
 

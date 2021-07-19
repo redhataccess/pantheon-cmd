@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from pcchecks import Colors, Regex, checks, nesting_in_modules_check, nesting_in_assemblies_check
+from pcchecks import Colors, Regex, checks, nesting_in_modules_check, nesting_in_assemblies_check, add_res_section_module_check, add_res_section_assembly_check
 
 
 class Report():
@@ -51,6 +51,7 @@ def validation(files_found, modules_found, assemblies_found):
             stripped = Regex.PSEUDO_VANILLA_XREF.sub('', stripped)
             stripped = Regex.CODE_BLOCK.sub('', stripped)
             nesting_in_modules_check(report, stripped, path)
+            add_res_section_module_check(report, stripped, path)
 
     for path in assemblies_found:
         with open(path, "r") as file:
@@ -61,5 +62,6 @@ def validation(files_found, modules_found, assemblies_found):
             stripped = Regex.PSEUDO_VANILLA_XREF.sub('', stripped)
             stripped = Regex.CODE_BLOCK.sub('', stripped)
             nesting_in_assemblies_check(report, stripped, path)
+            add_res_section_assembly_check(report, stripped, path)
 
     return report
