@@ -153,7 +153,7 @@ if __name__ == "__main__":
     # Action - find nonexistent files
     elif args.command == 'validate':
 
-        validate = validation(pcutil.get_exist(pcutil.get_content(pcutil.get_yaml_file())))
+        validate = validation(pcutil.get_exist(pcutil.get_content(pcutil.get_yaml_file())), pcutil.get_existing_modules(pcutil.get_yaml_file()), pcutil.get_existing_assemblies(pcutil.get_yaml_file()))
 
         if os.path.exists('pantheon2.yml'):
             if validate.count != 0:

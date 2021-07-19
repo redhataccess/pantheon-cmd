@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from pcchecks import Colors, Regex, checks
+from pcchecks import Colors, Regex, checks, nesting_in_modules_check, nesting_in_assemblies_check
 
 
 class Report():
@@ -28,7 +28,7 @@ class Report():
             print(separator.join(files))
 
 
-def validation(files_found):
+def validation(files_found, modules_found, assemblies_found):
     """Validate files."""
     report = Report()
 
@@ -41,5 +41,25 @@ def validation(files_found):
             stripped = Regex.PSEUDO_VANILLA_XREF.sub('', stripped)
             stripped = Regex.CODE_BLOCK.sub('', stripped)
             checks(report, stripped, original, path)
+
+    for path in modules_found:
+        with open(path, "r") as file:
+            original = file.read()
+            stripped = Regex.MULTI_LINE_COMMENT.sub('', original)
+            stripped = Regex.SINGLE_LINE_COMMENT.sub('', stripped)
+            # FIXME: figure out a better way to exclude pseudo vanilla xrefs
+            stripped = Regex.PSEUDO_VANILLA_XREF.sub('', stripped)
+            stripped = Regex.CODE_BLOCK.sub('', stripped)
+            nesting_in_modules_check(report, stripped, path)
+
+    for path in assemblies_found:
+        with open(path, "r") as file:
+            original = file.read()
+            stripped = Regex.MULTI_LINE_COMMENT.sub('', original)
+            stripped = Regex.SINGLE_LINE_COMMENT.sub('', stripped)
+            # FIXME: figure out a better way to exclude pseudo vanilla xrefs
+            stripped = Regex.PSEUDO_VANILLA_XREF.sub('', stripped)
+            stripped = Regex.CODE_BLOCK.sub('', stripped)
+            nesting_in_assemblies_check(report, stripped, path)
 
     return report

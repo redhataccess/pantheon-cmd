@@ -2,6 +2,7 @@
 
 import re
 import os
+import pcutil
 
 
 class Colors:
@@ -22,15 +23,6 @@ class Tags:
     ADD_RES = '[role="_additional-resources"]'
     EXPERIMENTAL = ':experimental:'
     LVLOFFSET = ':leveloffset:'
-
-
-class FileType:
-    """Define strings for finding out file type."""
-
-    ASSEMBLY = re.compile(r'assembly_.*\.adoc')
-    CONCEPT = re.compile(r'con_.*\.adoc')
-    PROCEDURE = re.compile(r'proc_.*\.adoc')
-    REFERENCE = re.compile(r'ref_.*\.adoc')
 
 
 class Regex:
@@ -100,24 +92,20 @@ def html_markup_check(stripped_file):
         return True
 
 
-def nesting_in_modules_check(stripped_file, file_path):
+# Standalone check on modules_found
+def nesting_in_modules_check(report, stripped_file, file_path):
     """Check if modules contains nested content."""
-    name_of_file = os.path.basename(file_path)
-    if not FileType.ASSEMBLY.fullmatch(name_of_file):
-        if re.findall(Regex.NESTED_ASSEMBLY, stripped_file):
-            return True
-            #print_fail("the following module contains nested assemblies", file)
-        if re.findall(Regex.NESTED_MODULES, stripped_file):
-            return True
-            #print_fail("the following module contains nested modules", file)
+    if re.findall(Regex.NESTED_ASSEMBLY, stripped_file):
+        return report.create_report('nesting in modules. nesting', file_path)
+    if re.findall(Regex.NESTED_MODULES, stripped_file):
+        return report.create_report('nesting in modules. nesting', file_path)
 
 
-def nesting_in_assemblies_check(stripped_file, file_path):
+# Standalone check on assemblies_found
+def nesting_in_assemblies_check(report, stripped_file, file_path):
     """Check if file contains nested assemblies."""
-    name_of_file = os.path.basename(file_path)
-    if FileType.ASSEMBLY.fullmatch(name_of_file):
-        if re.findall(Regex.NESTED_ASSEMBLY, stripped_file):
-            return True
+    if re.findall(Regex.NESTED_ASSEMBLY, stripped_file):
+        return report.create_report('nesting in assemblies. nesting', file_path)
 
 
 def lvloffset_check(stripped_file):
@@ -157,12 +145,6 @@ def checks(report, stripped_file, original_file, file_path):
 
     if human_readable_label_check(stripped_file):
         report.create_report('xrefs without a human readable label', file_path)
-
-    if nesting_in_modules_check(stripped_file, file_path):
-        report.create_report('nesting in modules. nesting', file_path)
-
-    if nesting_in_assemblies_check(stripped_file, file_path):
-        report.create_report('nesting in assemblies. nesting', file_path)
 
     if lvloffset_check(stripped_file):
         report.create_report('unsupported use of :leveloffset:. unsupported includes', file_path)

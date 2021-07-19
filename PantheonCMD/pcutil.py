@@ -118,3 +118,31 @@ def get_not_exist(content_list):
 def get_exist(content_list):
     files_found, files_not_found = get_existence(content_list)
     return(sorted(files_found, key=str.lower))
+
+
+def get_existing_modules(yaml_file_location):
+    modules_found = []
+
+    with open(yaml_file_location, 'r') as f:
+        main_yaml_file = yaml.safe_load(f)
+        content_list, content_duplicates = get_files(main_yaml_file, "modules")
+    content_list = sorted(content_list, key=str.lower)
+
+    for item in content_list:
+        if os.path.exists(item):
+            modules_found.append(item)
+    return(sorted(modules_found, key=str.lower))
+
+
+def get_existing_assemblies(yaml_file_location):
+    assemblies_found = []
+
+    with open(yaml_file_location, 'r') as f:
+        main_yaml_file = yaml.safe_load(f)
+        content_list, content_duplicates = get_files(main_yaml_file, "assemblies")
+    content_list = sorted(content_list, key=str.lower)
+
+    for item in content_list:
+        if os.path.exists(item):
+            assemblies_found.append(item)
+    return(sorted(assemblies_found, key=str.lower))
