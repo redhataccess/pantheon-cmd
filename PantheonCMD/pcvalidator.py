@@ -24,7 +24,7 @@ class Report():
         separator = "\n"
 
         for category, files in self.report.items():
-            print(Colors.FAIL + Colors.BOLD + "FAIL: {} found in the following files:".format(category) + Colors.END)
+            print("\nFAIL: {} found in the following files:".format(category))
             print(separator.join(files))
 
 
