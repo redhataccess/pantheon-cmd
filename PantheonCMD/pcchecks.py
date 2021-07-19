@@ -25,7 +25,7 @@ class Tags:
 
 
 class FileType:
-    """Define strings for finding out fily type."""
+    """Define strings for finding out file type."""
 
     ASSEMBLY = re.compile(r'assembly_.*\.adoc')
     CONCEPT = re.compile(r'con_.*\.adoc')
