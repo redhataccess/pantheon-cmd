@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 
 import re
-import os
-import pcutil
 
 
 class Colors:
