@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
-from pcchecks import Colors, Regex, checks, nesting_in_modules_check, nesting_in_assemblies_check, add_res_section_module_check, add_res_section_assembly_check
+from pcchecks import Regex, checks, nesting_in_modules_check, nesting_in_assemblies_check, add_res_section_module_check, add_res_section_assembly_check
+import sys
 
 
 class Report():
@@ -18,14 +19,14 @@ class Report():
             self.report[category] = []
         self.report[category].append(file_path)
 
-
     def print_report(self):
+
         """Print report."""
-        separator = "\n"
+        separator = "\n\t"
 
         for category, files in self.report.items():
             print("\nFAIL: {} found in the following files:".format(category))
-            print(separator.join(files))
+            print('\t' + separator.join(files))
 
 
 def validation(files_found, modules_found, assemblies_found):
@@ -38,7 +39,7 @@ def validation(files_found, modules_found, assemblies_found):
             stripped = Regex.MULTI_LINE_COMMENT.sub('', original)
             stripped = Regex.SINGLE_LINE_COMMENT.sub('', stripped)
             # FIXME: figure out a better way to exclude pseudo vanilla xrefs
-            stripped = Regex.PSEUDO_VANILLA_XREF.sub('', stripped)
+            #stripped = Regex.PSEUDO_VANILLA_XREF.sub('', stripped)
             stripped = Regex.CODE_BLOCK.sub('', stripped)
             checks(report, stripped, original, path)
 
@@ -48,7 +49,7 @@ def validation(files_found, modules_found, assemblies_found):
             stripped = Regex.MULTI_LINE_COMMENT.sub('', original)
             stripped = Regex.SINGLE_LINE_COMMENT.sub('', stripped)
             # FIXME: figure out a better way to exclude pseudo vanilla xrefs
-            stripped = Regex.PSEUDO_VANILLA_XREF.sub('', stripped)
+            #stripped = Regex.PSEUDO_VANILLA_XREF.sub('', stripped)
             stripped = Regex.CODE_BLOCK.sub('', stripped)
             nesting_in_modules_check(report, stripped, path)
             add_res_section_module_check(report, stripped, path)
@@ -59,7 +60,7 @@ def validation(files_found, modules_found, assemblies_found):
             stripped = Regex.MULTI_LINE_COMMENT.sub('', original)
             stripped = Regex.SINGLE_LINE_COMMENT.sub('', stripped)
             # FIXME: figure out a better way to exclude pseudo vanilla xrefs
-            stripped = Regex.PSEUDO_VANILLA_XREF.sub('', stripped)
+            #stripped = Regex.PSEUDO_VANILLA_XREF.sub('', stripped)
             stripped = Regex.CODE_BLOCK.sub('', stripped)
             nesting_in_assemblies_check(report, stripped, path)
             add_res_section_assembly_check(report, stripped, path)
