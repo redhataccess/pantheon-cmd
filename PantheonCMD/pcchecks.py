@@ -3,17 +3,6 @@
 import re
 
 
-class Colors:
-    """Define colors to use in the command line output."""
-
-    OK = '\033[92m'
-    WARN = '\033[93m'
-    FAIL = '\033[91m'
-    END = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-
-
 class Tags:
 
     """Define tags."""
@@ -27,7 +16,7 @@ class Regex:
     """Define regular expresiions for the checks."""
 
     VANILLA_XREF = re.compile(r'<<.*>>')
-    PSEUDO_VANILLA_XREF = re.compile(r'<<((.*) (.*))*>>')
+    # PSEUDO_VANILLA_XREF = re.compile(r'<<.* .*>>')
     MULTI_LINE_COMMENT = re.compile(r'(/{4,})(.*\n)*?(/{4,})')
     SINGLE_LINE_COMMENT = re.compile(r'(?<!//)(?<!/)//(?!//).*\n?')
     EMPTY_LINE_AFTER_ABSTRACT = re.compile(r'\[role="_abstract"]\n(?=\n)')
@@ -40,8 +29,8 @@ class Regex:
     HTML_MARKUP = re.compile(r'<.*>.*<\/.*>|<.*>\n.*\n</.*>')
     CODE_BLOCK = re.compile(r'(?<=\.\.\.\.\n)((.*)\n)*(?=\.\.\.\.)|(?<=----\n)((.*)\n)*(?=----)')
     HUMAN_READABLE_LABEL_XREF = re.compile(r'xref:.*\[]')
-    NESTED_ASSEMBLY = re.compile(r'include.*assembly_([a-z|0-9|A-Z|\-|_]+)\.adoc(\[.*\])')
-    NESTED_MODULES = re.compile(r'include.*(proc|con|ref)_([a-z|0-9|A-Z|\-|_]+)\.adoc(\[.*\])')
+    NESTED_ASSEMBLY = re.compile(r'include.*assembly([a-z|0-9|A-Z|\-|_]+)\.adoc(\[.*\])')
+    NESTED_MODULES = re.compile(r'include.*(proc|con|ref)([a-z|0-9|A-Z|\-|_]+)\.adoc(\[.*\])')
     RELATED_INFO = re.compile(r'= Related information|.Related information', re.IGNORECASE)
     ADDITIONAL_RES = re.compile(r'= Additional resources|\.Additional resources', re.IGNORECASE)
     ADD_RES_TAG = re.compile(r'\[role="_additional-resources"]')
@@ -102,8 +91,9 @@ def nesting_in_modules_check(report, stripped_file, file_path):
 
 # Standalone check on modules_found
 def add_res_section_module_check(report, stripped_file, file_path):
-    if not re.findall(Regex.ADD_RES_MODULE, stripped_file):
-        report.create_report("Additional resources section for modules should be `.Additional resources`. Wrong section name was", file_path)
+    if re.findall(Regex.ADDITIONAL_RES, stripped_file):
+        if not re.findall(Regex.ADD_RES_MODULE, stripped_file):
+            report.create_report("Additional resources section for modules should be `.Additional resources`. Wrong section name was", file_path)
 
 
 # Standalone check on assemblies_found
@@ -115,8 +105,9 @@ def nesting_in_assemblies_check(report, stripped_file, file_path):
 
 # Standalone check on assemblies_found
 def add_res_section_assembly_check(report, stripped_file, file_path):
-    if not re.findall(Regex.ADD_RES_ASSEMBLY, stripped_file):
-        return report.create_report("additional resources section for assemblies should be `== Additional resources`. Wrong section name was", file_path)
+    if re.findall(Regex.ADDITIONAL_RES, stripped_file):
+        if not re.findall(Regex.ADD_RES_ASSEMBLY, stripped_file):
+            return report.create_report("additional resources section for assemblies should be `== Additional resources`. Wrong section name was", file_path)
 
 
 def lvloffset_check(stripped_file):
@@ -178,7 +169,7 @@ def empty_line_after_add_res_header(stripped_file, original_file):
             return True
 
 
-# gives false positives if there's a normal and a commented out add res section 
+# gives false positives if there's a normal and a commented out add res section
 def comment_after_add_res_header(stripped_file, original_file):
     if stripped_file.count(Tags.ADD_RES) == 1:
         if re.findall(Regex.COMMENT_AFTER_ADD_RES_HEADER, original_file):
