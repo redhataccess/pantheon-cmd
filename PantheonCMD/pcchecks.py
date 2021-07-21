@@ -15,9 +15,6 @@ class Tags:
 class Regex:
     """Define regular expresiions for the checks."""
 
-    ATTRIBUTE_FILE = re.compile(r".*attribute.*adoc")
-    MODULE_TYPE = re.compile(r":_module-type:")
-    INCLUDE = re.compile(r"(?<=include::).*(?=\[)")
     VANILLA_XREF = re.compile(r'<<.*>>')
     # PSEUDO_VANILLA_XREF = re.compile(r'<<.* .*>>')
     MULTI_LINE_COMMENT = re.compile(r'(/{4,})(.*\n)*?(/{4,})')
@@ -32,9 +29,8 @@ class Regex:
     HTML_MARKUP = re.compile(r'<.*>.*<\/.*>|<.*>\n.*\n</.*>')
     CODE_BLOCK = re.compile(r'(?<=\.\.\.\.\n)((.*)\n)*(?=\.\.\.\.)|(?<=----\n)((.*)\n)*(?=----)')
     HUMAN_READABLE_LABEL_XREF = re.compile(r'xref:.*\[]')
-    NESTED_ASSEMBLY = re.compile(r'include.*assembly.*adoc(\[.*\])')
-    NESTED_MODULES = re.compile(r'include.*(proc|con|ref).*adoc(\[.*\])')
-    ANY_MODULE = re.compile(r'(proc|con|ref).*\.adoc')
+    NESTED_ASSEMBLY = re.compile(r'include.*assembly([a-z|0-9|A-Z|\-|_]+)\.adoc(\[.*\])')
+    NESTED_MODULES = re.compile(r'include.*(proc|con|ref)([a-z|0-9|A-Z|\-|_]+)\.adoc(\[.*\])')
     RELATED_INFO = re.compile(r'= Related information|.Related information', re.IGNORECASE)
     ADDITIONAL_RES = re.compile(r'= Additional resources|\.Additional resources', re.IGNORECASE)
     ADD_RES_TAG = re.compile(r'\[role="_additional-resources"]')
@@ -105,15 +101,6 @@ def nesting_in_assemblies_check(report, stripped_file, file_path):
     """Check if file contains nested assemblies."""
     if re.findall(Regex.NESTED_ASSEMBLY, stripped_file):
         return report.create_report('nesting in assemblies. nesting', file_path)
-    # if the assembly doesn't contain another assembly_*.adoc, check if it has includes that are not modules (no module prefix or module type) or attribute files
-    else:
-        includes = re.findall(Regex.INCLUDE, stripped_file)
-        if includes:
-            for item in includes:
-                if not re.findall(Regex.ANY_MODULE, item):
-                    if not re.findall(Regex.ATTRIBUTE_FILE, item):
-                        if not re.findall(Regex.MODULE_TYPE, item):
-                            return report.create_report('BBB nesting in assemblies. nesting', file_path)
 
 
 # Standalone check on assemblies_found
