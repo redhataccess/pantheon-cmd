@@ -2,12 +2,12 @@
 
 import argparse
 import os
-import pcbuild
-import pcutil
 import shutil
 import signal
 import sys
-from pcvalidator import validation, Report
+import pcbuild
+import pcutil
+from pcvalidator import validation
 
 
 # Prints the default header
@@ -130,9 +130,9 @@ if __name__ == "__main__":
     # Action - find nonexistent files
     elif args.command == 'exists':
 
-        exists = pcutil.get_not_exist(pcutil.get_content(pcutil.get_yaml_file()))
-
         if os.path.exists('pantheon2.yml'):
+
+            exists = pcutil.get_not_exist(pcutil.get_content(yaml_file_location))
 
             if exists:
 
@@ -153,9 +153,14 @@ if __name__ == "__main__":
     # Action - find nonexistent files
     elif args.command == 'validate':
 
-        validate = validation(pcutil.get_exist(pcutil.get_content(pcutil.get_yaml_file())), pcutil.get_existing_modules(pcutil.get_yaml_file()), pcutil.get_existing_assemblies(pcutil.get_yaml_file()))
-
         if os.path.exists('pantheon2.yml'):
+
+            files_found = pcutil.get_exist(pcutil.get_content(yaml_file_location))
+            modules_found = pcutil.get_existing_modules(yaml_file_location)
+            assemblies_found = pcutil.get_existing_assemblies(yaml_file_location)
+
+            validate = validation(files_found, modules_found, assemblies_found)
+
             if validate.count != 0:
                 print("Your pantheon2.yml contains the following files that did not pass validation:\n")
                 validate.print_report()
