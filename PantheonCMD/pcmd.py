@@ -1,4 +1,4 @@
-#!/usr/libexec/platform-python
+#!/usr/bin/python3
 
 import argparse
 import os
@@ -7,20 +7,19 @@ import pcutil
 import shutil
 import signal
 import sys
+from pcutil import PantheonRepo
 
 
-# Prints the default header
 def print_header():
-
+    """Prints the default program header."""
     print('==================================================')
     print('Pantheon CMD                                      ')
     print('==================================================')
     print('')
 
 
-# Construct argument parser and parse arguments
 def parse_args():
-
+    """Constructs the main argument parser and sub-parsers for actions and arguments."""
     # Main parser
     parser = argparse.ArgumentParser(prog='pcmd')
     parser = argparse.ArgumentParser(description='Preview and validate modular content from the command line.')
@@ -40,14 +39,13 @@ def parse_args():
     parser_c = subparsers.add_parser('duplicates', help='Enumerate duplicate entries in your pantheon2.yml file.')
 
     # 'Exists' command
-    parser_d = subparsers.add_parser('exists', help='Enumerate entries in your pantheon2.yml file that do not exist in path.')
+    parser_d = subparsers.add_parser('exists',help='Enumerate entries in your pantheon2.yml file that do not exist in path.')
 
     return parser.parse_args()
 
 
-# Define keyboard interrupt cleanup process
 def keyboardInterruptHandler(signal, frame):
-
+    """Defines a keyboard interrupt process."""
     print("Operation cancelled; exiting...")
 
     exit(0)
@@ -65,13 +63,13 @@ if __name__ == "__main__":
     # Add custom keyboard interrupt handler
     signal.signal(signal.SIGINT, keyboardInterruptHandler)
 
-    # Get the location of the pantheon2.yml file, if any
-    yaml_file_location = pcutil.get_yaml_file()
+    # Construct a PantheonRepo instance
+    pantheon_repo = PantheonRepo()
 
     # Exit if not a Pantheon V2 repository
-    if not yaml_file_location:
+    if not pantheon_repo.is_pantheon_repo():
 
-        print("No pantheon2.yml file detected; exiting...")
+        print("Not a Pantheon V2 repository; exiting...")
 
         sys.exit(1)
 
@@ -81,13 +79,13 @@ if __name__ == "__main__":
 
         if args.files:
 
-            pcbuild.build_content(pcutil.get_content_subset(args.files), yaml_file_location, args.lang)
+            pcbuild.build_content(pcutil.get_content_subset(args.files), args.lang, pantheon_repo.repo_location, pantheon_repo.yaml_file_location)
 
         else:
 
             if os.path.exists('pantheon2.yml'):
 
-                pcbuild.build_content(pcutil.get_content(yaml_file_location), yaml_file_location, args.lang)
+                pcbuild.build_content(pantheon_repo.get_content(), args.lang, pantheon_repo.repo_location, pantheon_repo.yaml_file_location)
 
             else:
 
@@ -99,22 +97,21 @@ if __name__ == "__main__":
     elif args.command == 'clean':
 
         if os.path.exists('build'):
-
             shutil.rmtree('build')
-
             print("Successfully removed build directory!")
+        else:
+            print("No build directory found; exiting...")
 
     # Action - find duplicate entries
     elif args.command == 'duplicates':
 
-        duplicates = pcutil.get_duplicates(yaml_file_location)
+        duplicates = pantheon_repo.get_duplicates()
 
         if duplicates:
 
             print("Your pantheon2.yml contains the following duplicate entries:\n")
 
             for duplicate in duplicates:
-
                 print(duplicate)
 
             print("\nTotal: ", str(len(duplicates)))
@@ -126,14 +123,13 @@ if __name__ == "__main__":
     # Action - find nonexistent files
     elif args.command == 'exists':
 
-        exists = pcutil.get_not_exist(pcutil.get_content(pcutil.get_yaml_file()))
+        exists = pcutil.get_not_exist(pantheon_repo.get_content())
 
         if exists:
 
             print("Your pantheon2.yml contains the following files that do not exist in your repository:\n")
 
             for exist in exists:
-
                 print(exist)
 
             print("\nTotal: ", str(len(exists)))
