@@ -46,6 +46,10 @@ echo 'Getting remote resources...'
 
 svn checkout https://github.com/redhataccess/pantheon/trunk/pantheon-bundle/src/main/resources/apps/pantheon/templates/haml/html5 PantheonCMD/haml
 
+# Replace remote CSS locations with local ones
+sed -i 's/^-\ pantheonCssPath.*/-\ pantheonCssPath\ \=\ \"resources\/rhdocs.min.css\"/' PantheonCMD/haml/document.html.haml
+sed -i 's/href\=\"https\:\/\/static\.redhat\.com\/libs\/redhat\/redhat-font\/2\/webfonts\/red-hat-font\.css/href\=\"resources\/red-hat-font.css/' PantheonCMD/haml/document.html.haml
+
 # with find cp doesn't print 'omitting directory'
 find PantheonCMD/* -maxdepth 0 -type f -exec cp {} PantheonCMD/pantheon-cmd-$1 \;
 cp -r PantheonCMD/{haml,resources,utils,locales} PantheonCMD/pantheon-cmd-$1
