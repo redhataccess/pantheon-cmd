@@ -57,13 +57,17 @@ cp -r PantheonCMD/{haml,resources,utils,locales} PantheonCMD/pantheon-cmd-$1
 # Package sources ditectory
 tar cvfz PantheonCMD/pantheon-cmd-$1.tar.gz -C PantheonCMD/ pantheon-cmd-$1
 
+# Create rpmbuild dir and structure if it doesn't already exist
+if [ ! -d "~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS,tmp}" ]; then
+    mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS}
+fi
+
 # Move build files to the local build root
 cp PantheonCMD/pantheon-cmd-$1.tar.gz ~/rpmbuild/SOURCES
 
 cp build/pantheon-cmd.spec ~/rpmbuild/SPECS
 
 # Build the package
-install -d $HOME/rpmbuild
 rpmbuild -ba ~/rpmbuild/SPECS/pantheon-cmd.spec
 
 rm -rf PantheonCMD/pantheon-cmd-$1*
