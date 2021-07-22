@@ -58,7 +58,7 @@ cp -r PantheonCMD/{haml,resources,utils,locales} PantheonCMD/pantheon-cmd-$1
 tar cvfz PantheonCMD/pantheon-cmd-$1.tar.gz -C PantheonCMD/ pantheon-cmd-$1
 
 # Create rpmbuild dir and structure if it doesn't already exist
-if [ ! -d "~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS,tmp}" ]; then
+if [ ! -d "~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS}" ]; then
     mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS}
 fi
 
