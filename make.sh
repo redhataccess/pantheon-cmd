@@ -46,6 +46,10 @@ echo 'Getting remote resources...'
 
 svn checkout https://github.com/redhataccess/pantheon/trunk/pantheon-bundle/src/main/resources/apps/pantheon/templates/haml/html5 PantheonCMD/haml
 
+# Replace remote CSS locations with local ones
+sed -i 's/^-\ pantheonCssPath.*/-\ pantheonCssPath\ \=\ \"resources\/rhdocs.min.css\"/' PantheonCMD/haml/document.html.haml
+sed -i 's/href\=\"https\:\/\/static\.redhat\.com\/libs\/redhat\/redhat-font\/2\/webfonts\/red-hat-font\.css/href\=\"resources\/red-hat-font.css/' PantheonCMD/haml/document.html.haml
+
 # with find cp doesn't print 'omitting directory'
 find PantheonCMD/* -maxdepth 0 -type f -exec cp {} PantheonCMD/pantheon-cmd-$1 \;
 cp -r PantheonCMD/{haml,resources,utils,locales} PantheonCMD/pantheon-cmd-$1
@@ -53,13 +57,17 @@ cp -r PantheonCMD/{haml,resources,utils,locales} PantheonCMD/pantheon-cmd-$1
 # Package sources ditectory
 tar cvfz PantheonCMD/pantheon-cmd-$1.tar.gz -C PantheonCMD/ pantheon-cmd-$1
 
+# Create rpmbuild dir and structure if it doesn't already exist
+if [ ! -d "~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS}" ]; then
+    mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS}
+fi
+
 # Move build files to the local build root
 cp PantheonCMD/pantheon-cmd-$1.tar.gz ~/rpmbuild/SOURCES
 
 cp build/pantheon-cmd.spec ~/rpmbuild/SPECS
 
 # Build the package
-install -d $HOME/rpmbuild
 rpmbuild -ba ~/rpmbuild/SPECS/pantheon-cmd.spec
 
 rm -rf PantheonCMD/pantheon-cmd-$1*
