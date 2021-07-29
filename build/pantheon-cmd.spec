@@ -4,7 +4,7 @@ License:   General Public License 3.0
 Vendor:    Red Hat, Inc.
 Group:     Applications/Accessories
 Version:   1.0
-Release:   3%{?dist}
+Release:   0%{?dist}
 BuildRoot: %{_builddir}/%{name}-buildroot
 Packager:  Andrew Dahms
 BuildArch: noarch
@@ -20,10 +20,6 @@ Builds Pantheon V2 content.
 
 %prep
 %setup -q
-
-%if 0%{?fedora}
-sed -i 's|#!/usr/libexec/platform-python|#!/usr/bin/python3|' *.py
-%endif
 
 %build
 echo \#\!/usr/bin/bash > pcmd
