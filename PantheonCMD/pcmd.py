@@ -45,7 +45,7 @@ def parse_args():
     parser_e = subparsers.add_parser('validate', help='Validate entries in your pantheon2.yml file.')
 
     # 'Generate' command
-    parser_e = subparsers.add_parser('generate', help='Generate pantheon2.yml file from a template.')
+    parser_f = subparsers.add_parser('generate', help='Generate pantheon2.yml file from a template.')
 
     return parser.parse_args()
 
