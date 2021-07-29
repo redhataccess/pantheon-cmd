@@ -7,6 +7,7 @@ import signal
 import sys
 from pcutil import PantheonRepo, get_not_exist, get_exist
 from pcvalidator import validation
+from subprocess import call
 
 
 def print_header():
@@ -42,6 +43,9 @@ def parse_args():
 
     # 'Validate' command
     parser_e = subparsers.add_parser('validate', help='Validate entries in your pantheon2.yml file.')
+
+    # 'Generate' command
+    parser_e = subparsers.add_parser('generate', help='Generate pantheon2.yml file from a template.')
 
     return parser.parse_args()
 
@@ -163,3 +167,8 @@ if __name__ == "__main__":
                 print("All files passed validation.")
         else:
             print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")
+
+    # Action - find nonexistent files
+    elif args.command == 'generate':
+        path_to_script = os.path.dirname(os.path.realpath(__file__))
+        call("sh " + path_to_script + "/pv2yml-generator.sh", shell=True)
