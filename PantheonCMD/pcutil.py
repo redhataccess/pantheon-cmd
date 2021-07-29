@@ -9,6 +9,7 @@ import yaml
 class PantheonRepo():
     """Class for processing information about Pantheon V2 repositories."""
 
+
     def __init__(self):
         """Default constructor; finds pantheon2.yml, if any."""
 
@@ -23,6 +24,7 @@ class PantheonRepo():
             path_components.pop()
 
         self.yaml_file_location = '' if self.repo_location == None else self.repo_location + 'pantheon2.yml'
+
 
     def is_pantheon_repo(self):
         """Returns whether the repo is a valid Pantheon V2 repository."""
@@ -47,6 +49,7 @@ class PantheonRepo():
             content_counts['modules'] += len(glob.glob(module))
 
         return content_counts
+
 
     def get_files(self, main_yaml_file, *arguments):
         """Returns a sorted list of the modules and assemblies specified in a pantheon2.yml file."""
@@ -73,6 +76,7 @@ class PantheonRepo():
                         content_duplicates.append(content_file)
         return content_list, content_duplicates
 
+
     def get_content(self):
         """Returns a sorted list of the modules and assemblies specified in a pantheon2.yml file."""
         with open(self.yaml_file_location, 'r') as f:
@@ -80,6 +84,7 @@ class PantheonRepo():
             content_list, content_duplicates = self.get_files(yaml_file, "assemblies", "modules")
 
         return sorted(content_list, key=str.lower)
+
 
     def get_duplicates(self):
         """Returns duplicate entries of modules and assemblies found in a pantheon2.yml file."""

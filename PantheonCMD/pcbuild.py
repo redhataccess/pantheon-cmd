@@ -35,9 +35,9 @@ def process_file(file_name, attributes_file_location, lang, content_count):
 
     # Run AsciiDoctor on the temporary copy
     if lang and lang == 'ja-JP':
-        cmd = ('asciidoctor -a imagesdir=images -a lang=ja -T ' + script_dir + '/haml/ -E haml ' + file_name + '.tmp').split()
+        cmd = ('asciidoctor -a toc! -a imagesdir=images -a lang=ja -T ' + script_dir + '/haml/ -E haml ' + file_name + '.tmp').split()
     else:
-        cmd = ('asciidoctor -a imagesdir=images -T ' + script_dir + '/haml/ -E haml ' + file_name + '.tmp').split()
+        cmd = ('asciidoctor -a toc! -a imagesdir=images -T ' + script_dir + '/haml/ -E haml ' + file_name + '.tmp').split()
 
     output = subprocess.run(cmd, stderr=subprocess.PIPE)
 
