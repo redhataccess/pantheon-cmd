@@ -149,7 +149,7 @@ if __name__ == "__main__":
         else:
             print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")
 
-    # Action - find nonexistent files
+    # Action - validate modules and assemblies
     elif args.command == 'validate':
 
         if os.path.exists('pantheon2.yml'):
@@ -168,7 +168,7 @@ if __name__ == "__main__":
         else:
             print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")
 
-    # Action - find nonexistent files
+    # Action - generate a pantheon2.yml file
     elif args.command == 'generate':
         path_to_script = os.path.dirname(os.path.realpath(__file__))
         call("sh " + path_to_script + "/pv2yml-generator.sh", shell=True)

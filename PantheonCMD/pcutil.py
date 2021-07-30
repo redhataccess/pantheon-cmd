@@ -6,10 +6,6 @@ import re
 import yaml
 
 
-# Check if the current working tree contains a pantheon2.yml file
-def get_yaml_file():
-    path_components = os.getcwd().split(os.sep)
-
 class PantheonRepo():
     """Class for processing information about Pantheon V2 repositories."""
 
