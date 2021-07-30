@@ -94,6 +94,37 @@ class PantheonRepo():
 
         return sorted(content_duplicates, key=str.lower)
 
+    def get_existing_modules(self):
+        """Returns modules found in a pantheon2.yml file that exist as files."""
+        modules_found = []
+
+        with open(self.yaml_file_location, 'r') as f:
+            yaml_file = yaml.safe_load(f)
+            content_list, content_duplicates = self.get_files(yaml_file, "modules")
+        content_list = sorted(content_list, key=str.lower)
+
+        for item in content_list:
+            if os.path.exists(item):
+                modules_found.append(item)
+
+        return(sorted(modules_found, key=str.lower))
+
+
+    def get_existing_assemblies(self):
+        """Returns assemblies found in a pantheon2.yml file that exist as files."""
+        assemblies_found = []
+
+        with open(self.yaml_file_location, 'r') as f:
+            yaml_file = yaml.safe_load(f)
+            content_list, content_duplicates = self.get_files(yaml_file, "assemblies")
+        content_list = sorted(content_list, key=str.lower)
+
+        for item in content_list:
+            if os.path.exists(item):
+                assemblies_found.append(item)
+
+        return(sorted(assemblies_found, key=str.lower))
+
 
 def get_content_subset(content_files):
     """Returns a sorted list of modules and assemblies in arbitrary path 'content_files'."""
@@ -124,4 +155,11 @@ def get_not_exist(content_list):
     """Returns a sorted list of the files specified in a set of content that do not exist as files."""
     files_found, files_not_found = get_existence(content_list)
 
-    return sorted(files_not_found, key=str.lower)
+    return(sorted(files_not_found, key=str.lower))
+
+
+def get_exist(content_list):
+    """Returns a sorted list of the files specified in a set of content that do exist as files."""
+    files_found, files_not_found = get_existence(content_list)
+
+    return(sorted(files_found, key=str.lower))

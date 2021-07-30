@@ -2,12 +2,12 @@
 
 import argparse
 import os
-import pcbuild
-import pcutil
 import shutil
 import signal
 import sys
-from pcutil import PantheonRepo
+from pcutil import PantheonRepo, get_not_exist, get_exist
+from pcvalidator import validation
+from subprocess import call
 
 
 def print_header():
@@ -40,6 +40,12 @@ def parse_args():
 
     # 'Exists' command
     parser_d = subparsers.add_parser('exists',help='Enumerate entries in your pantheon2.yml file that do not exist in path.')
+
+    # 'Validate' command
+    parser_e = subparsers.add_parser('validate', help='Validate entries in your pantheon2.yml file.')
+
+    # 'Generate' command
+    parser_f = subparsers.add_parser('generate', help='Generate pantheon2.yml file from a template.')
 
     return parser.parse_args()
 
@@ -123,17 +129,46 @@ if __name__ == "__main__":
     # Action - find nonexistent files
     elif args.command == 'exists':
 
-        exists = pcutil.get_not_exist(pantheon_repo.get_content())
+        if os.path.exists('pantheon2.yml'):
 
-        if exists:
+            exists = get_not_exist(pantheon_repo.get_content())
 
-            print("Your pantheon2.yml contains the following files that do not exist in your repository:\n")
+            if exists:
 
-            for exist in exists:
-                print(exist)
+                print("Your pantheon2.yml contains the following files that do not exist in your repository:\n")
 
-            print("\nTotal: ", str(len(exists)))
+                for exist in exists:
 
+                    print(exist)
+
+                print("\nTotal: ", str(len(exists)))
+
+            else:
+
+                print("All files exist.")
         else:
+            print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")
 
-            print("All files exist.")
+    # Action - validate modules and assemblies
+    elif args.command == 'validate':
+
+        if os.path.exists('pantheon2.yml'):
+
+            files_found = get_exist(pantheon_repo.get_content())
+            modules_found = pantheon_repo.get_existing_modules()
+            assemblies_found = pantheon_repo.get_existing_assemblies()
+
+            validate = validation(files_found, modules_found, assemblies_found)
+
+            if validate.count != 0:
+                print("Your pantheon2.yml contains the following files that did not pass validation:\n")
+                validate.print_report()
+            else:
+                print("All files passed validation.")
+        else:
+            print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")
+
+    # Action - generate a pantheon2.yml file
+    elif args.command == 'generate':
+        path_to_script = os.path.dirname(os.path.realpath(__file__))
+        call("sh " + path_to_script + "/pv2yml-generator.sh", shell=True)
