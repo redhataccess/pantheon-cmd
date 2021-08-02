@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import pcbuild
 import shutil
 import signal
 import sys
