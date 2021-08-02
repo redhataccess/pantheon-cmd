@@ -33,7 +33,6 @@ def empty_key_check(report, yaml_file, keys):
     for key in keys:
         if yaml_file[key] == None:
             empty_keys.append(key)
-            #Printing.print_message('value is empty', key)
     if empty_keys:
         report.create_report('values are empty', sorted(empty_keys, key=str.lower))
 
@@ -45,7 +44,6 @@ def path_to_images_dir_check(report, yaml_file):
         path_to_images_dir = os.path.split(item)[0]
         if not os.path.exists(path_to_images_dir):
             false_dir.append(path_to_images_dir)
-            #Printing.print_message('does not exist in your repository', path_to_images_dir)
     if false_dir:
         report.create_report('files or directories do not exist in your repository', sorted(false_dir, key=str.lower))
 
@@ -59,19 +57,15 @@ def variant_values_check(report, yaml_file, required_values):
         for item in required_values:
             if variant_values[item] == None:
                 varriant_values_none.append(item)
-                #Printing.print_message('value is empty', item)
                 report.create_report('values are empty', sorted(varriant_values_none, key=str.lower))
 
         if variant_values['canonical'] != None:
             if variant_values['canonical'] != True:
                 cannonical_is_not_true.append('cannonical')
                 report.create_report('value is not set to True', sorted(cannonical_is_not_true, key=str.lower))
-                #Printing.print_message('value is not set to True', 'canonical')
-
 
         if variant_values['path'] != None:
             if not os.path.exists(variant_values['path']):
-                #Printing.print_message('does not exist in your repository', variant_values['path'])'''
                 path_does_not_exist.append(variant_values['path'])
                 report.create_report('files or directories do not exist in your repository', path_does_not_exist)
 
@@ -82,7 +76,6 @@ def yaml_validator(self):
     with open(self.yaml_file_location, 'r') as f:
         data = yaml.safe_load(f)
 
-        sep = '\n'
         required_keys = (['server', 'repository', 'variants', 'assemblies', 'modules', 'resources'])
 
         required_variant_values = (['name', 'path', 'canonical'])
@@ -90,8 +83,5 @@ def yaml_validator(self):
         empty_key_check(report, data, required_keys)
         path_to_images_dir_check(report, data)
         variant_values_check(report, data, required_variant_values)
-        '''empty_key_check(data, required_keys)
-        path_to_images_dir_check(data)
-        variant_values_check(data, required_variant_values)'''
 
     return report
