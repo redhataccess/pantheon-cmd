@@ -9,6 +9,7 @@ import sys
 from pcutil import PantheonRepo, get_not_exist, get_exist
 from pcvalidator import validation
 from subprocess import call
+from pcyamlcheck import yaml_validator
 
 
 def print_header():
@@ -47,6 +48,8 @@ def parse_args():
 
     # 'Generate' command
     parser_f = subparsers.add_parser('generate', help='Generate pantheon2.yml file from a template.')
+
+    parser_g = subparsers.add_parser('validate-yaml', help='Validate the syntax of your pantheon2.yml file.')
 
     return parser.parse_args()
 
@@ -173,3 +176,37 @@ if __name__ == "__main__":
     elif args.command == 'generate':
         path_to_script = os.path.dirname(os.path.realpath(__file__))
         call("sh " + path_to_script + "/pv2yml-generator.sh", shell=True)
+
+    # Action - validate modules and assemblies
+    elif args.command == 'validate-yaml':
+
+        if os.path.exists('pantheon2.yml'):
+
+            missing_keys = pantheon_repo.get_missing_yaml_keys()
+
+            if missing_keys:
+
+                print("Your pantheon2.yml is missing the following keys:\n")
+
+                for key in missing_keys:
+
+                    print(key)
+
+                print("\nTotal: ", str(len(missing_keys)))
+
+            else:
+
+                print("All keys are set.")
+
+                yaml_validation = yaml_validator(pantheon_repo)
+
+                if yaml_validation.count != 0:
+                    print("Your pantheon2.yml has the following errors:\n")
+                    yaml_validation.print_report()
+
+                else:
+
+                    print("Your pantheon2.yml file passed validation.")
+
+        else:
+            print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")

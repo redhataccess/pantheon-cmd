@@ -126,6 +126,22 @@ class PantheonRepo():
         return(sorted(assemblies_found, key=str.lower))
 
 
+    def get_missing_yaml_keys(self):
+        key_missing = []
+
+        with open(self.yaml_file_location, 'r') as f:
+            data = yaml.safe_load(f)
+            keys = data.keys()
+
+            # check if all required keys exist in the yml file
+            required_keys = (['server', 'repository', 'variants', 'assemblies', 'modules', 'resources'])
+            for key in required_keys:
+                if not key in keys:
+                    key_missing.append(key)
+
+        return(sorted(key_missing, key=str.lower))
+
+
 def get_content_subset(content_files):
     """Returns a sorted list of modules and assemblies in arbitrary path 'content_files'."""
     content_list = []
