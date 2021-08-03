@@ -18,7 +18,7 @@ class Regex:
     VANILLA_XREF = re.compile(r'<<.*>>')
     # PSEUDO_VANILLA_XREF = re.compile(r'<<.* .*>>')
     MULTI_LINE_COMMENT = re.compile(r'(/{4,})(.*\n)*?(/{4,})')
-    SINGLE_LINE_COMMENT = re.compile(r'(?<!//)(?<!/)//(?!//).*\n?')
+    SINGLE_LINE_COMMENT = re.compile(r'(?<!\/\/)(?<!\/)^\/\/(?!\/\/).*\n', re.M)
     EMPTY_LINE_AFTER_ABSTRACT = re.compile(r'\[role="_abstract"]\n(?=\n)')
     FIRST_PARA = re.compile(r'(?<!\n\n)\[role="_abstract"]\n(?!\n)')
     NO_EMPTY_LINE_BEFORE_ABSTRACT = re.compile(r'(?<!\n\n)\[role="_abstract"]')
@@ -27,8 +27,11 @@ class Regex:
     INLINE_ANCHOR = re.compile(r'=.*\[\[.*\]\]')
     UI_MACROS = re.compile(r'btn:\[.*\]|menu:.*\]|kbd:.*\]')
     HTML_MARKUP = re.compile(r'<.*>.*<\/.*>|<.*>\n.*\n</.*>')
-    CODE_BLOCK = re.compile(r'(?<=\.\.\.\.\n)((.*)\n)*(?=\.\.\.\.)|(?<=----\n)((.*)\n)*(?=----)')
+    INTERNAL_IFDEF = re.compile(r'(ifdef::internal\[\])(.*\n)*?(endif::\[\])')
+    CODE_BLOCK_DASHES = re.compile(r'(-{4,})(.*\n)*?(-{4,})')
+    CODE_BLOCK_DOTS = re.compile(r'(\.{4,})(.*\n)*?(\.{4,})')
     HUMAN_READABLE_LABEL_XREF = re.compile(r'xref:.*\[]')
+    HUMAN_READABLE_LABEL_LINK = re.compile(r'\b(?:https?|file|ftp|irc):\/\/[^\s\[\]<]*\[\]')
     NESTED_ASSEMBLY = re.compile(r'include.*assembly([a-z|0-9|A-Z|\-|_]+)\.adoc(\[.*\])')
     NESTED_MODULES = re.compile(r'include.*(proc|con|ref)([a-z|0-9|A-Z|\-|_]+)\.adoc(\[.*\])')
     RELATED_INFO = re.compile(r'= Related information|.Related information', re.IGNORECASE)
@@ -68,9 +71,15 @@ def experimental_tag_check(stripped_file):
         return True
 
 
-def human_readable_label_check(stripped_file):
-    "Check if the human readable label is present."""
+def human_readable_label_check_xrefs(stripped_file):
+    "Check if the human readable label is present in xrefs."""
     if re.findall(Regex.HUMAN_READABLE_LABEL_XREF, stripped_file):
+        return True
+
+
+def human_readable_label_check_links(stripped_file):
+    "Check if the human readable label is present in links."""
+    if re.findall(Regex.HUMAN_READABLE_LABEL_LINK, stripped_file):
         return True
 
 
@@ -217,8 +226,11 @@ def checks(report, stripped_file, original_file, file_path):
     if html_markup_check(stripped_file):
         report.create_report('HTML markup', file_path)
 
-    if human_readable_label_check(stripped_file):
+    if human_readable_label_check_xrefs(stripped_file):
         report.create_report('xrefs without a human readable label', file_path)
+
+    if human_readable_label_check_links(stripped_file):
+        report.create_report('links without a human readable label', file_path)
 
     if lvloffset_check(stripped_file):
         report.create_report('unsupported use of :leveloffset:. unsupported includes', file_path)
