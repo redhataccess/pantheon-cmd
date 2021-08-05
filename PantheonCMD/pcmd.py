@@ -6,10 +6,11 @@ import pcbuild
 import shutil
 import signal
 import sys
-from pcutil import PantheonRepo, get_not_exist, get_exist
+
+from pcutil import PantheonRepo, get_not_exist, get_exist, is_pantheon_repo
 from pcvalidator import validation
-from subprocess import call
 from pcyamlcheck import yaml_validator
+from subprocess import call
 
 
 def print_header():
@@ -73,19 +74,19 @@ if __name__ == "__main__":
     # Add custom keyboard interrupt handler
     signal.signal(signal.SIGINT, keyboardInterruptHandler)
 
-    # Construct a PantheonRepo instance
-    pantheon_repo = PantheonRepo()
+    repo_location = is_pantheon_repo()
 
     # Exit if not a Pantheon V2 repository
-    if not pantheon_repo.is_pantheon_repo():
-
+    if repo_location:
+        # Construct a PantheonRepo instance
+        pantheon_repo = PantheonRepo(repo_location)
+    else:
         print("Not a Pantheon V2 repository; exiting...")
-
         sys.exit(1)
 
     # Else parse actions
     # Action - compile
-    elif args.command == 'compile':
+    if args.command == 'compile':
 
         if args.files:
 
@@ -159,8 +160,8 @@ if __name__ == "__main__":
         if os.path.exists('pantheon2.yml'):
 
             files_found = get_exist(pantheon_repo.get_content())
-            modules_found = pantheon_repo.get_existing_modules()
-            assemblies_found = pantheon_repo.get_existing_assemblies()
+            modules_found = pantheon_repo.get_existing_content("modules")
+            assemblies_found = pantheon_repo.get_existing_content("assemblies")
 
             validate = validation(files_found, modules_found, assemblies_found)
 
