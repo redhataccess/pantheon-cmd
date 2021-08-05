@@ -73,6 +73,7 @@ class PantheonRepo():
 
     def get_files(self, main_yaml_file, *arguments):
         """Returns a sorted list of the modules and assemblies specified in a pantheon2.yml file."""
+        content_files = []
         content_list = []
         content_duplicates = []
         wildcards = re.compile(r'[*?\[\]]')
@@ -85,7 +86,10 @@ class PantheonRepo():
             for item in main_yaml_file[argument]:
                 # checks if string has a wildcard to use glob.glob
                 if wildcards.search(item):
-                    content_files = glob.glob(item)
+                    if glob.glob(item):
+                        content_files.append(item)
+                    else:
+                        content_files.append(item)
                 else:
                     content_files = [item]
 
