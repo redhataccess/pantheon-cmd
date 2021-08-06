@@ -3,8 +3,8 @@
 import argparse
 import os
 import pcbuild
+import pcutil
 import shutil
-import signal
 import sys
 
 from pcutil import PantheonRepo, get_not_exist, get_exist, is_pantheon_repo
@@ -55,13 +55,6 @@ def parse_args():
     return parser.parse_args()
 
 
-def keyboardInterruptHandler(signal, frame):
-    """Defines a keyboard interrupt process."""
-    print("Operation cancelled; exiting...")
-
-    exit(0)
-
-
 # MAIN ROUTINE
 if __name__ == "__main__":
 
@@ -70,9 +63,6 @@ if __name__ == "__main__":
 
     # Parse arguments
     args = parse_args()
-
-    # Add custom keyboard interrupt handler
-    signal.signal(signal.SIGINT, keyboardInterruptHandler)
 
     repo_location = is_pantheon_repo()
 
@@ -96,7 +86,17 @@ if __name__ == "__main__":
 
             if os.path.exists('pantheon2.yml'):
 
-                pcbuild.build_content(pantheon_repo.get_content(), args.lang, pantheon_repo.repo_location, pantheon_repo.yaml_file_location)
+                content_types = ['assemblies','modules']
+                continue_run = True
+
+                for content_type in content_types:
+
+                    if continue_run:
+
+                        print("Building %s...\n" % content_type)
+                        print(pantheon_repo.get_existing_content(content_type))
+
+                        continue_run = pcbuild.build_content(pantheon_repo.get_existing_content(content_type), args.lang, pantheon_repo.repo_location, pantheon_repo.yaml_file_location)
 
             else:
 

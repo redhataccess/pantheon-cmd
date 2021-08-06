@@ -27,8 +27,7 @@ def process_file(file_name, attributes_file_location, lang, content_count):
             if lang == 'ja-JP':
                 output_file.write('include::' + script_dir + '/locales/attributes-ja.adoc[]\n\n')
                 
-        coalesced_content = subprocess.run(['ruby', script_dir + '/utils/asciidoc-coalescer.rb', file_name],
-                                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        coalesced_content = subprocess.run(['ruby', script_dir + '/utils/asciidoc-coalescer.rb', file_name],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         regex_images = 'image:(:?)(.*?)\/([a-zA-Z0-9_-]+)\.(.*?)\['
 
         output_file.write(re.sub(regex_images, r'image:\1\3.\4[', coalesced_content.stdout.decode('utf-8')))
@@ -39,21 +38,23 @@ def process_file(file_name, attributes_file_location, lang, content_count):
     else:
         cmd = ('asciidoctor -a toc! -a imagesdir=images -T ' + script_dir + '/haml/ -E haml ' + file_name + '.tmp').split()
 
-    output = subprocess.run(cmd, stderr=subprocess.PIPE)
-
-    if output.stderr:
-        print(output.stderr.decode('utf-8'))
-
-    shutil.move(file_name.replace('.adoc', '.adoc.html'),'build/' + os.path.split(file_name)[1].replace('.adoc', '.html'))
+    # Build the content using AsciiDoctor
+    output = subprocess.run(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 
     # Delete the temporary copy
     os.remove(file_name + '.tmp')
+
+    # Move the output file to the build directory
+    shutil.move(file_name.replace('.adoc', '.adoc.html'),'build/' + os.path.split(file_name)[1].replace('.adoc', '.html'))
 
 
 def build_content(content_files, lang, repo_location, yaml_file_location):
     """Attempts to build all specified files."""
     script_dir = os.path.dirname(os.path.realpath(__file__))
     content_count = len(content_files)
+    global current_count
+
+    current_count = 1
 
     # Parse the main YAML file
     with open(yaml_file_location, 'r') as f:
@@ -83,8 +84,22 @@ def build_content(content_files, lang, repo_location, yaml_file_location):
             attributes_file_location = repo_location + members[0]["path"]
             break
 
-    with concurrent.futures.ThreadPoolExecutor() as pool:
+    try:
+        pool = concurrent.futures.ThreadPoolExecutor()
+        futures = []
         for content_file in content_files:
-            pool.submit(process_file, content_file, attributes_file_location, lang, content_count)
+            futures.append(pool.submit(process_file, content_file, attributes_file_location, lang, content_count))
+
+        pool.shutdown(wait=True)
+    except KeyboardInterrupt:
+        print("\nShutting down...\n")
+
+        # Cancel pending futures
+        for future in futures:
+            if not future.running():
+                future.cancel()
+        return False
 
     print()
+
+    return True
