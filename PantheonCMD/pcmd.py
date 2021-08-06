@@ -94,7 +94,6 @@ if __name__ == "__main__":
                     if continue_run:
 
                         print("Building %s...\n" % content_type)
-                        print(pantheon_repo.get_existing_content(content_type))
 
                         continue_run = pcbuild.build_content(pantheon_repo.get_existing_content(content_type), args.lang, pantheon_repo.repo_location, pantheon_repo.yaml_file_location)
 
