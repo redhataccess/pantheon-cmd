@@ -11,6 +11,72 @@ import yaml
 current_count = 1
 
 
+def build_content(content_files, lang, repo_location, yaml_file_location):
+    """Attempts to build all specified files."""
+    content_count = len(content_files)
+    global current_count
+
+    current_count = 1
+
+    # Parse the main YAML file
+    with open(yaml_file_location, 'r') as f:
+        main_yaml_file = yaml.safe_load(f)
+
+    for item, members in main_yaml_file.items():
+        if item == 'variants':
+            attributes_file_location = repo_location + members[0]["path"]
+            break
+
+    try:
+        pool = concurrent.futures.ThreadPoolExecutor()
+        futures = []
+        for content_file in content_files:
+            futures.append(pool.submit(process_file, content_file, attributes_file_location, lang, content_count))
+
+        pool.shutdown(wait=True)
+    except KeyboardInterrupt:
+        print("\nShutting down...\n")
+
+        # Cancel pending futures
+        for future in futures:
+            if not future.running():
+                future.cancel()
+        return False
+
+    print()
+
+    return True
+
+
+def copy_resources(resources):
+    """Copy resources such as images and files to the build directory."""
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+
+    # Copy resources
+    for resource in resources:
+        if resource.endswith(('jpg', 'jpeg', 'png', 'svg')):
+            shutil.copy(resource, 'build/images/')
+        else:
+            if not os.path.exists('build/files'):
+                os.makedirs('build/files')
+            shutil.copy(resource, 'build/files/')
+
+    # Copy styling resources
+    shutil.copytree(script_dir + '/resources', 'build/resources')
+
+
+def prepare_build_directory():
+    """Removes any existing 'build' directory and creates the directory structure required."""
+
+    # Remove build directory if it exists
+    if os.path.exists('build'):
+        shutil.rmtree('build')
+
+    # Create a build directory
+    os.makedirs('build')
+    os.makedirs('build/images')
+
+
 def process_file(file_name, attributes_file_location, lang, content_count):
     """Coalesces files and builds them using an AsciiDoctor sub-process."""
     script_dir = os.path.dirname(os.path.realpath(__file__))
@@ -46,60 +112,3 @@ def process_file(file_name, attributes_file_location, lang, content_count):
 
     # Move the output file to the build directory
     shutil.move(file_name.replace('.adoc', '.adoc.html'),'build/' + os.path.split(file_name)[1].replace('.adoc', '.html'))
-
-
-def build_content(content_files, lang, repo_location, yaml_file_location):
-    """Attempts to build all specified files."""
-    script_dir = os.path.dirname(os.path.realpath(__file__))
-    content_count = len(content_files)
-    global current_count
-
-    current_count = 1
-
-    # Parse the main YAML file
-    with open(yaml_file_location, 'r') as f:
-        main_yaml_file = yaml.safe_load(f)
-
-    # Remove build directory if it exists
-    if os.path.exists('build'):
-        shutil.rmtree('build')
-
-    # Create a build directory
-    os.makedirs('build')
-    os.makedirs('build/images')
-
-    # Copy resources
-    for resource in main_yaml_file["resources"]:
-        for name in glob.glob(resource):
-            if name.endswith(('jpg', 'jpeg', 'png', 'svg')):
-                shutil.copy(name, 'build/images/')
-            else:
-                shutil.copy(name, 'build/')
-
-    # Copy styling resources
-    shutil.copytree(script_dir + '/resources', 'build/resources')
-
-    for item, members in main_yaml_file.items():
-        if item == 'variants':
-            attributes_file_location = repo_location + members[0]["path"]
-            break
-
-    try:
-        pool = concurrent.futures.ThreadPoolExecutor()
-        futures = []
-        for content_file in content_files:
-            futures.append(pool.submit(process_file, content_file, attributes_file_location, lang, content_count))
-
-        pool.shutdown(wait=True)
-    except KeyboardInterrupt:
-        print("\nShutting down...\n")
-
-        # Cancel pending futures
-        for future in futures:
-            if not future.running():
-                future.cancel()
-        return False
-
-    print()
-
-    return True

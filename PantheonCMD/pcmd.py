@@ -77,6 +77,7 @@ if __name__ == "__main__":
     # Else parse actions
     # Action - compile
     if args.command == 'compile':
+        # Did a user specify a set of files? If so, only build those.
         if args.files:
             # Handle different interpretations of directories
             if os.path.isdir(args.files):
@@ -93,26 +94,24 @@ if __name__ == "__main__":
                 print("Couldn't find any valid files; exiting...\n")
                 sys.exit(1)
             else:
+                pcbuild.prepare_build_directory()
+                pcbuild.copy_resources(pantheon_repo.get_existing_content("resources"))
                 pcbuild.build_content(content_subset, args.lang, pantheon_repo.repo_location, pantheon_repo.yaml_file_location)
+        # Otherwise, attempt to build all files in the pantheon2.yml file.
         else:
-
             if os.path.exists('pantheon2.yml'):
-
                 content_types = ['assemblies','modules']
                 continue_run = True
 
+                pcbuild.prepare_build_directory()
+                pcbuild.copy_resources(pantheon_repo.get_existing_content("resources"))
+
                 for content_type in content_types:
-
                     if continue_run:
-
                         print("Building %s...\n" % content_type)
-
                         continue_run = pcbuild.build_content(pantheon_repo.get_existing_content(content_type), args.lang, pantheon_repo.repo_location, pantheon_repo.yaml_file_location)
-
             else:
-
                 print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")
-
                 sys.exit(1)
 
     # Action - clean
