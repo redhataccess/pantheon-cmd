@@ -120,10 +120,21 @@ class PantheonRepo():
 def get_content_subset(content_files):
     """Returns a sorted list of modules and assemblies in arbitrary path 'content_files'."""
     content_list = []
+    wildcards = re.compile(r'[*?\[\]]')
 
-    for content_file in glob.glob(content_files):
-        if content_file.endswith('.adoc') and content_file not in content_list:
-            content_list.append(content_file)
+    # Handle wildcard searches - directories and sets of files
+    if wildcards.search(content_files):
+        expanded_file_list = glob.glob(content_files)
+        if expanded_file_list:
+            for expanded_file in expanded_file_list:
+                if expanded_file.endswith('.adoc'):
+                    if expanded_file not in content_list:
+                        content_list.append(expanded_file)
+    # Handle individual files
+    else:
+        if content_files.endswith('.adoc'):
+            if content_files not in content_list:
+                content_list.append(content_files)
 
     return sorted(content_list, key=str.lower)
 

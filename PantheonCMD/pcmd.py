@@ -77,11 +77,23 @@ if __name__ == "__main__":
     # Else parse actions
     # Action - compile
     if args.command == 'compile':
-
         if args.files:
+            # Handle different interpretations of directories
+            if os.path.isdir(args.files):
+                if args.files.endswith('/'):
+                    args.files += '*.adoc'
+                else:
+                    args.files += '/*.adoc'
 
-            pcbuild.build_content(pcutil.get_content_subset(args.files), args.lang, pantheon_repo.repo_location, pantheon_repo.yaml_file_location)
+            # Get set of files
+            content_subset = pcutil.get_content_subset(args.files)
 
+            # Ensure at least one valid file exists in the set
+            if not content_subset:
+                print("Couldn't find any valid files; exiting...\n")
+                sys.exit(1)
+            else:
+                pcbuild.build_content(content_subset, args.lang, pantheon_repo.repo_location, pantheon_repo.yaml_file_location)
         else:
 
             if os.path.exists('pantheon2.yml'):
