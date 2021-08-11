@@ -149,13 +149,13 @@ if __name__ == "__main__":
 
         if os.path.exists('pantheon2.yml'):
 
+            # function searches for syntax errors and prints the results
+            syntax_errors = get_yaml_syntax_errors(pantheon_repo)
+
             missing_keys = get_missing_yaml_keys(pantheon_repo)
             files_found = get_exist(pantheon_repo.get_content())
             modules_found = pantheon_repo.get_existing_content("modules")
             assemblies_found = pantheon_repo.get_existing_content("assemblies")
-
-            # function searches for syntax errors and prints the results
-            syntax_errors = get_yaml_syntax_errors(pantheon_repo)
 
             if missing_keys:
 
@@ -183,34 +183,34 @@ if __name__ == "__main__":
 
                 print("Your pantheon2.yml file passed syntax validation.")
 
-        exists = get_not_exist(pantheon_repo.get_content())
+            exists = get_not_exist(pantheon_repo.get_content())
 
-        if exists:
+            if exists:
 
-            print("\nYour pantheon2.yml contains the following files that do not exist in your repository:\n")
+                print("\nYour pantheon2.yml contains the following files that do not exist in your repository:\n")
 
-            for exist in exists:
+                for exist in exists:
 
-                print('\t' + exist)
+                    print('\t' + exist)
 
-            print("\nTotal: ", str(len(exists)))
+                print("\nTotal: ", str(len(exists)))
+
+            else:
+
+                print("All files exist.")
+
+            files_found = get_exist(pantheon_repo.get_content())
+            modules_found = pantheon_repo.get_existing_content("modules")
+            assemblies_found = pantheon_repo.get_existing_content("assemblies")
+
+            validate = validation(files_found, modules_found, assemblies_found)
+
+            if validate.count != 0:
+                print("\nYour pantheon2.yml contains the following files that did not pass validation:\n")
+                validate.print_report()
+            else:
+                print("All files passed validation.")
 
         else:
 
-            print("All files exist.")
-
-        files_found = get_exist(pantheon_repo.get_content())
-        modules_found = pantheon_repo.get_existing_content("modules")
-        assemblies_found = pantheon_repo.get_existing_content("assemblies")
-
-        validate = validation(files_found, modules_found, assemblies_found)
-
-        if validate.count != 0:
-            print("\nYour pantheon2.yml contains the following files that did not pass validation:\n")
-            validate.print_report()
-        else:
-            print("All files passed validation.")
-
-    else:
-
-        print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")
+            print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")
