@@ -84,14 +84,25 @@ class PantheonRepo():
             if argument not in main_yaml_file:
                 continue
 
+            # Reset files to prevent duplicate entries
+            content_files = []
+
+            # Iterate through each entry in the section
             for item in main_yaml_file[argument]:
                 # checks if string has a wildcard to use glob.glob
                 if wildcards.search(item):
-                    content_files.append(item)
+                    expanded_items = glob.glob(item)
+                    if expanded_items:
+                        for expanded_item in expanded_items:
+                            content_files.append(expanded_item)
+                    else:
+                        continue
                 else:
-                    content_files = [item]
+                    content_files.append(item)
 
-                for content_file in content_files:
+            # Iterate through files to sort out non-AsciiDoc files, duplicates
+            for content_file in content_files:
+                if content_file.endswith('.adoc'):
                     if content_file not in content_list:
                         content_list.append(content_file)
                     else:

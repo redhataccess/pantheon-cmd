@@ -6,9 +6,12 @@ import os
 import re
 import shutil
 import subprocess
+import threading
 import yaml
 
-current_count = 1
+lock = threading.Lock()
+
+current_count = 0
 
 
 def build_content(content_files, lang, repo_location, yaml_file_location):
@@ -16,7 +19,7 @@ def build_content(content_files, lang, repo_location, yaml_file_location):
     content_count = len(content_files)
     global current_count
 
-    current_count = 1
+    current_count = 0
 
     # Parse the main YAML file
     with open(yaml_file_location, 'r') as f:
@@ -82,9 +85,10 @@ def process_file(file_name, attributes_file_location, lang, content_count):
     script_dir = os.path.dirname(os.path.realpath(__file__))
     global current_count
 
-    print('\033[1mBuilding {0:d}/{1:d}:\033[0m {2:s}'.format(current_count, content_count, file_name))
+    with lock:
+        current_count += 1
 
-    current_count += 1
+        print('\033[1mBuilding {0:d}/{1:d}:\033[0m {2:s}'.format(current_count, content_count, file_name))
 
     # Create a temporary copy of the file, inject the attributes, and write content
     with open(file_name + '.tmp', 'w') as output_file:
