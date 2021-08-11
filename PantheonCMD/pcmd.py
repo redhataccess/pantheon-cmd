@@ -9,7 +9,7 @@ import sys
 
 from pcutil import PantheonRepo, get_not_exist, get_exist, is_pantheon_repo
 from pcvalidator import validation
-from pcyamlcheck import yaml_validator
+from pcyamlcheck import yaml_validator, get_missing_yaml_keys, get_yaml_syntax_errors
 from subprocess import call
 
 
@@ -41,16 +41,11 @@ def parse_args():
     # 'Duplicates' command
     parser_c = subparsers.add_parser('duplicates', help='Enumerate duplicate entries in your pantheon2.yml file.')
 
-    # 'Exists' command
-    parser_d = subparsers.add_parser('exists',help='Enumerate entries in your pantheon2.yml file that do not exist in path.')
-
     # 'Validate' command
-    parser_e = subparsers.add_parser('validate', help='Validate entries in your pantheon2.yml file.')
+    parser_d = subparsers.add_parser('validate', help='Validate entries in your pantheon2.yml file.')
 
     # 'Generate' command
-    parser_f = subparsers.add_parser('generate', help='Generate pantheon2.yml file from a template.')
-
-    parser_g = subparsers.add_parser('validate-yaml', help='Validate the syntax of your pantheon2.yml file.')
+    parser_e = subparsers.add_parser('generate', help='Generate pantheon2.yml file from a template.')
 
     return parser.parse_args()
 
@@ -141,83 +136,81 @@ if __name__ == "__main__":
 
             print("No duplicates found.")
 
-    # Action - find nonexistent files
-    elif args.command == 'exists':
-
-        if os.path.exists('pantheon2.yml'):
-
-            exists = get_not_exist(pantheon_repo.get_content())
-
-            if exists:
-
-                print("Your pantheon2.yml contains the following files that do not exist in your repository:\n")
-
-                for exist in exists:
-
-                    print(exist)
-
-                print("\nTotal: ", str(len(exists)))
-
-            else:
-
-                print("All files exist.")
-        else:
-            print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")
-
-    # Action - validate modules and assemblies
-    elif args.command == 'validate':
-
-        if os.path.exists('pantheon2.yml'):
-
-            files_found = get_exist(pantheon_repo.get_content())
-            modules_found = pantheon_repo.get_existing_content("modules")
-            assemblies_found = pantheon_repo.get_existing_content("assemblies")
-
-            validate = validation(files_found, modules_found, assemblies_found)
-
-            if validate.count != 0:
-                print("Your pantheon2.yml contains the following files that did not pass validation:\n")
-                validate.print_report()
-            else:
-                print("All files passed validation.")
-        else:
-            print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")
-
     # Action - generate a pantheon2.yml file
     elif args.command == 'generate':
         path_to_script = os.path.dirname(os.path.realpath(__file__))
         call("sh " + path_to_script + "/pv2yml-generator.sh", shell=True)
 
-    # Action - validate modules and assemblies
-    elif args.command == 'validate-yaml':
+
+    # Action - validate yaml syntax, validate yaml keys and values
+    # find nonexistent files
+    # validate modules and assemblies
+    elif args.command == 'validate':
 
         if os.path.exists('pantheon2.yml'):
 
-            missing_keys = pantheon_repo.get_missing_yaml_keys()
+            missing_keys = get_missing_yaml_keys(pantheon_repo)
+            files_found = get_exist(pantheon_repo.get_content())
+            modules_found = pantheon_repo.get_existing_content("modules")
+            assemblies_found = pantheon_repo.get_existing_content("assemblies")
+
+            # function searches for syntax errors and prints the results
+            syntax_errors = get_yaml_syntax_errors(pantheon_repo)
 
             if missing_keys:
 
-                print("Your pantheon2.yml is missing the following keys:\n")
+                print("\nYour pantheon2.yml is missing the following keys:\n")
 
                 for key in missing_keys:
 
-                    print(key)
+                    print('\t' + key)
 
                 print("\nTotal: ", str(len(missing_keys)))
+                sys.exit('\nPlease fix your pantheon2.yml to validte the files; exiting...')
 
             else:
 
                 print("All keys are set.")
 
-                yaml_validation = yaml_validator(pantheon_repo)
+            yaml_validation = yaml_validator(pantheon_repo)
 
-                if yaml_validation.count != 0:
-                    print("Your pantheon2.yml has the following errors:\n")
-                    yaml_validation.print_report()
+            if yaml_validation.count != 0:
+                print("\nYour pantheon2.yml has the following errors:\n")
+                yaml_validation.print_report()
+                sys.exit()
 
-                else:
+            else:
 
-                    print("Your pantheon2.yml file passed validation.")
+                print("Your pantheon2.yml file passed syntax validation.")
+
+        exists = get_not_exist(pantheon_repo.get_content())
+
+        if exists:
+
+            print("\nYour pantheon2.yml contains the following files that do not exist in your repository:\n")
+
+            for exist in exists:
+
+                print('\t' + exist)
+
+            print("\nTotal: ", str(len(exists)))
 
         else:
-            print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")
+
+            print("All files exist.")
+
+        files_found = get_exist(pantheon_repo.get_content())
+        modules_found = pantheon_repo.get_existing_content("modules")
+        assemblies_found = pantheon_repo.get_existing_content("assemblies")
+
+        validate = validation(files_found, modules_found, assemblies_found)
+
+        if validate.count != 0:
+            print("\nYour pantheon2.yml contains the following files that did not pass validation:\n")
+            validate.print_report()
+        else:
+            print("All files passed validation.")
+
+    else:
+
+        print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")

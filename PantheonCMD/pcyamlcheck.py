@@ -2,6 +2,7 @@
 
 import os
 import yaml
+import sys
 
 
 class Printing():
@@ -26,7 +27,40 @@ class Printing():
                 print('\t' + separator.join(item))
 
 
+def get_yaml_syntax_errors(self):
+    if os.path.getsize(self.yaml_file_location) > 0:
+
+        with open(self.yaml_file_location, 'r') as f:
+
+            try:
+                yaml.safe_load(f)
+                print("No syntax errors detected.")
+            except yaml.YAMLError:
+                sys.exit("There's a syntax error in your pantheon2.yml file. Please fix it and try again.\nTo detect an error try running yaml lint on your pantheo2.yml file.")
+
+    else:
+        sys.exit("Your pantheon2.yml file is empty; exiting...")
+
+
+def get_missing_yaml_keys(self):
+
+    key_missing = []
+    with open(self.yaml_file_location, 'r') as f:
+        data = yaml.safe_load(f)
+        keys = data.keys()
+
+        # check if all required keys exist in the yml file
+        required_keys = (['server', 'repository', 'variants', 'assemblies', 'modules', 'resources'])
+
+        for key in required_keys:
+            if key not in keys:
+                key_missing.append(key)
+
+    return(sorted(key_missing, key=str.lower))
+
+
 def get_empty_values(report, yaml_file, keys):
+
     empty_keys = []
 
     for key in keys:
@@ -95,9 +129,9 @@ def yaml_validator(self):
 
         required_keys = (['server', 'repository', 'variants', 'assemblies', 'modules', 'resources'])
 
-        required_variant_values = (['name', 'path', 'canonical'])
+        required_variant_keys = (['name', 'path', 'canonical'])
 
         get_empty_values(report, data, required_keys)
-        get_missing_variant_keys(report, data, required_variant_values)
+        get_missing_variant_keys(report, data, required_variant_keys)
 
     return report

@@ -4,6 +4,7 @@ import glob
 import os
 import re
 import yaml
+import sys
 
 
 class PantheonRepo():
@@ -86,10 +87,7 @@ class PantheonRepo():
             for item in main_yaml_file[argument]:
                 # checks if string has a wildcard to use glob.glob
                 if wildcards.search(item):
-                    if glob.glob(item):
-                        content_files.append(item)
-                    else:
-                        content_files.append(item)
+                    content_files.append(item)
                 else:
                     content_files = [item]
 
@@ -99,22 +97,6 @@ class PantheonRepo():
                     else:
                         content_duplicates.append(content_file)
         return content_list, content_duplicates
-
-
-    def get_missing_yaml_keys(self):
-        key_missing = []
-
-        with open(self.yaml_file_location, 'r') as f:
-            data = yaml.safe_load(f)
-            keys = data.keys()
-
-            # check if all required keys exist in the yml file
-            required_keys = (['server', 'repository', 'variants', 'assemblies', 'modules', 'resources'])
-            for key in required_keys:
-                if not key in keys:
-                    key_missing.append(key)
-
-        return(sorted(key_missing, key=str.lower))
 
 
 def get_content_subset(content_files):
