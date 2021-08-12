@@ -102,11 +102,10 @@ class PantheonRepo():
 
             # Iterate through files to sort out non-AsciiDoc files, duplicates
             for content_file in content_files:
-                if content_file.endswith('.adoc'):
-                    if content_file not in content_list:
-                        content_list.append(content_file)
-                    else:
-                        content_duplicates.append(content_file)
+                if content_file not in content_list:
+                    content_list.append(content_file)
+                else:
+                    content_duplicates.append(content_file)
         return content_list, content_duplicates
 
 
