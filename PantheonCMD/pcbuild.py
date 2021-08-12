@@ -80,17 +80,31 @@ def prepare_build_directory():
     os.makedirs('build/images')
 
 
-def coalesce_document(main_file):
+def coalesce_document(main_file, attributes=None):
     """Combines the content from includes into a single, contiguous source file."""
+    attributes = attributes or {}
     lines = []
 
+    # Open the file, iterate over lines
     if os.path.exists(main_file):
         with open(main_file) as input_file:
             for line in input_file:
+                # Process includes - recusrive
                 if line.startswith("include::"):
                     include_file = line.replace("include::", "").split("[")[0]
+                    # Replace attributes in includes, if already detected
+                    if re.match(r'^\{\S+\}.*', include_file):
+                        attribute = re.search(r'\{(.*?)\}',include_file).group(1)
+                        if attribute in attributes.keys():
+                            include_file = include_file.replace('{' + attribute + '}',attributes[attribute])
                     include_filepath = os.path.join(os.path.dirname(main_file), include_file)
-                    lines.extend(coalesce_document(include_filepath))
+                    lines.extend(coalesce_document(include_filepath,attributes))
+                # Build dictionary of found attributes
+                elif re.match(r'^:\S+:.*', line):
+                    attribute_name = line.split(":")[1].strip()
+                    attribute_value = line.split(":")[2].strip()
+                    attributes[attribute_name] = attribute_value
+                    lines.append(line)
                 else:
                     lines.append(line)
     return lines
