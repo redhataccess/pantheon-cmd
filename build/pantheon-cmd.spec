@@ -44,7 +44,6 @@ install -m 0755 pcmd $RPM_BUILD_ROOT%{_bindir}/pcmd
 
 cp -rf haml $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/
 cp -rf resources $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/
-cp -rf utils $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/
 cp -rf locales $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/
 cp pcmd.1.gz $RPM_BUILD_ROOT%{_mandir}/man1/
 

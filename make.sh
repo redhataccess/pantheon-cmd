@@ -27,7 +27,6 @@ fi
 cp PantheonCMD/* PantheonCMD/pantheon-cmd-$1
 cp -r PantheonCMD/haml PantheonCMD/pantheon-cmd-$1
 cp -r PantheonCMD/resources PantheonCMD/pantheon-cmd-$1
-cp -r PantheonCMD/utils PantheonCMD/pantheon-cmd-$1
 cp -r PantheonCMD/locales PantheonCMD/pantheon-cmd-$1
 
 cd PantheonCMD

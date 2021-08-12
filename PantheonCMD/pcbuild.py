@@ -80,6 +80,22 @@ def prepare_build_directory():
     os.makedirs('build/images')
 
 
+def coalesce_document(main_file):
+    """Combines the content from includes into a single, contiguous source file."""
+    lines = []
+
+    if os.path.exists(main_file):
+        with open(main_file) as input_file:
+            for line in input_file:
+                if line.startswith("include::"):
+                    include_file = line.replace("include::", "").split("[")[0]
+                    include_filepath = os.path.join(os.path.dirname(main_file), include_file)
+                    lines.extend(coalesce_document(include_filepath))
+                else:
+                    lines.append(line)
+    return lines
+
+
 def process_file(file_name, attributes_file_location, lang, content_count):
     """Coalesces files and builds them using an AsciiDoctor sub-process."""
     script_dir = os.path.dirname(os.path.realpath(__file__))
@@ -96,11 +112,12 @@ def process_file(file_name, attributes_file_location, lang, content_count):
         if lang:
             if lang == 'ja-JP':
                 output_file.write('include::' + script_dir + '/locales/attributes-ja.adoc[]\n\n')
-                
-        coalesced_content = subprocess.run(['ruby', script_dir + '/utils/asciidoc-coalescer.rb', file_name],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+
+        coalesced_content = ''.join(coalesce_document(file_name))
+
         regex_images = 'image:(:?)(.*?)\/([a-zA-Z0-9_-]+)\.(.*?)\['
 
-        output_file.write(re.sub(regex_images, r'image:\1\3.\4[', coalesced_content.stdout.decode('utf-8')))
+        output_file.write(re.sub(regex_images, r'image:\1\3.\4[', coalesced_content))
 
     # Run AsciiDoctor on the temporary copy
     if lang and lang == 'ja-JP':
