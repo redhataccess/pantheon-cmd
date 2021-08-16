@@ -57,10 +57,6 @@ The script is installed on your local machine.
 
 ## Licenscing
 
-This script uses mojavelinux's AsciiDoc coalescer script from the AsciiDoctor extensions lab.
-
-For more information, see https://github.com/asciidoctor/asciidoctor-extensions-lab/blob/master/scripts/asciidoc-coalescer.rb
-
 This script uses locale attributes files from the AsciiDoctor repository.
 
 For more information, see https://github.com/asciidoctor/asciidoctor/tree/master/data/locale
