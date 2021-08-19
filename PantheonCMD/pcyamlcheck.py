@@ -1,12 +1,13 @@
 #!/usr/bin/python3
 
 import os
-import yaml
 import sys
 import glob
+import yaml
 
 
 class Printing():
+    """Create and print report."""
 
     def __init__(self):
         self.report = {}
@@ -20,6 +21,7 @@ class Printing():
         self.report[message].append(items)
 
     def print_report(self):
+        """Print report."""
         separator = "\n\t"
 
         for message, items in self.report.items():
@@ -29,6 +31,7 @@ class Printing():
 
 
 def get_yaml_syntax_errors(self):
+    """Check size and syntax of the yaml file"""
     if os.path.getsize(self.yaml_file_location) > 0:
 
         with open(self.yaml_file_location, 'r') as f:
@@ -43,6 +46,7 @@ def get_yaml_syntax_errors(self):
 
 
 def get_missing_or_empty_yaml_keys(self):
+    """Get yaml keys that are empty or missing."""
 
     empty_keys = []
     key_missing = []
@@ -65,18 +69,21 @@ def get_missing_or_empty_yaml_keys(self):
 
 
 def get_missing_keys(self):
+    """Return missing keys."""
     key_missing, empty_keys = get_missing_or_empty_yaml_keys(self)
 
     return(sorted(key_missing, key=str.lower))
 
 
 def get_empty_values(self):
+    """Return empty keys."""
     key_missing, empty_keys = get_missing_or_empty_yaml_keys(self)
 
     return(sorted(empty_keys, key=str.lower))
 
 
 def get_missing_variant_keys(report, yaml_file, required_values):
+    """Get missing variant keys and check their values"""
     missing_value = []
 
     #FIXME: this code is redundant as skript exits if get_missing_variant_keys function has any value
@@ -129,6 +136,7 @@ def get_missing_variant_keys(report, yaml_file, required_values):
 
 
 def yaml_validator(self):
+    """Validates variant yaml keys."""
     report = Printing()
 
     with open(self.yaml_file_location, 'r') as f:
