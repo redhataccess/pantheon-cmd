@@ -35,7 +35,6 @@ def get_yaml_syntax_errors(self):
 
             try:
                 yaml.safe_load(f)
-                print("No syntax errors detected.")
             except yaml.YAMLError:
                 sys.exit("There's a syntax error in your pantheon2.yml file. Please fix it and try again.\nTo detect an error try running yaml lint on your pantheo2.yml file.")
 
@@ -43,9 +42,11 @@ def get_yaml_syntax_errors(self):
         sys.exit("Your pantheon2.yml file is empty; exiting...")
 
 
-def get_missing_yaml_keys(self):
+def get_missing_or_empty_yaml_keys(self):
 
+    empty_keys = []
     key_missing = []
+
     with open(self.yaml_file_location, 'r') as f:
         data = yaml.safe_load(f)
         keys = data.keys()
@@ -56,24 +57,29 @@ def get_missing_yaml_keys(self):
         for key in required_keys:
             if key not in keys:
                 key_missing.append(key)
+            else:
+                if data[key] is None:
+                    empty_keys.append(key)
+
+    return key_missing, empty_keys
+
+
+def get_missing_keys(self):
+    key_missing, empty_keys = get_missing_or_empty_yaml_keys(self)
 
     return(sorted(key_missing, key=str.lower))
 
 
-def get_empty_values(report, yaml_file, keys):
+def get_empty_values(self):
+    key_missing, empty_keys = get_missing_or_empty_yaml_keys(self)
 
-    empty_keys = []
-
-    for key in keys:
-        if yaml_file[key] == None:
-            empty_keys.append(key)
-    if empty_keys:
-        report.create_report('values are empty', sorted(empty_keys, key=str.lower))
+    return(sorted(empty_keys, key=str.lower))
 
 
 def get_missing_variant_keys(report, yaml_file, required_values):
     missing_value = []
 
+    #FIXME: this code is redundant as skript exits if get_missing_variant_keys function has any value
     if yaml_file['variants'] is None:
         report.create_report('values are missing under "variants"', sorted(required_values, key=str.lower))
         return
@@ -128,11 +134,8 @@ def yaml_validator(self):
     with open(self.yaml_file_location, 'r') as f:
         data = yaml.safe_load(f)
 
-        required_keys = (['server', 'repository', 'variants', 'assemblies', 'modules', 'resources'])
-
         required_variant_keys = (['name', 'path', 'canonical'])
 
-        get_empty_values(report, data, required_keys)
         get_missing_variant_keys(report, data, required_variant_keys)
 
     return report

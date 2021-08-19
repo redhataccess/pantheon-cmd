@@ -9,7 +9,7 @@ import sys
 
 from pcutil import PantheonRepo, get_not_exist, get_exist, is_pantheon_repo
 from pcvalidator import validation
-from pcyamlcheck import yaml_validator, get_missing_yaml_keys, get_yaml_syntax_errors
+from pcyamlcheck import yaml_validator, get_missing_keys, get_empty_values, get_yaml_syntax_errors
 from subprocess import call
 
 
@@ -151,11 +151,8 @@ if __name__ == "__main__":
 
             # function searches for syntax errors and prints the results
             syntax_errors = get_yaml_syntax_errors(pantheon_repo)
-
-            missing_keys = get_missing_yaml_keys(pantheon_repo)
-            files_found = get_exist(pantheon_repo.get_content())
-            modules_found = pantheon_repo.get_existing_content("modules")
-            assemblies_found = pantheon_repo.get_existing_content("assemblies")
+            missing_keys = get_missing_keys(pantheon_repo)
+            empty_values = get_empty_values(pantheon_repo)
 
             if missing_keys:
 
@@ -168,9 +165,20 @@ if __name__ == "__main__":
                 print("\nTotal: ", str(len(missing_keys)))
                 sys.exit('\nPlease fix your pantheon2.yml to validte the files; exiting...')
 
-            else:
+            if empty_values:
 
-                print("All keys are set.")
+                print("\nYour pantheon2.yml has the following keys with no value:\n")
+
+                for value in empty_values:
+
+                    print('\t' + value)
+
+                print("\nTotal: ", str(len(empty_values)))
+                sys.exit('\nPlease fix your pantheon2.yml to validte the files; exiting...')
+
+            files_found = get_exist(pantheon_repo.get_content())
+            modules_found = pantheon_repo.get_existing_content("modules")
+            assemblies_found = pantheon_repo.get_existing_content("assemblies")
 
             yaml_validation = yaml_validator(pantheon_repo)
 
@@ -178,10 +186,6 @@ if __name__ == "__main__":
                 print("\nYour pantheon2.yml has the following errors:\n")
                 yaml_validation.print_report()
                 sys.exit()
-
-            else:
-
-                print("Your pantheon2.yml file passed syntax validation.")
 
             exists = get_not_exist(pantheon_repo.get_content())
 
@@ -194,10 +198,6 @@ if __name__ == "__main__":
                     print('\t' + exist)
 
                 print("\nTotal: ", str(len(exists)))
-
-            else:
-
-                print("All files exist.")
 
             files_found = get_exist(pantheon_repo.get_content())
             modules_found = pantheon_repo.get_existing_content("modules")
