@@ -16,7 +16,7 @@ A script used to package the script as an RPM-based package that can be installe
 A directory containing the source files for the script, and the man page file.
 
 ## Updating the Script
-All additions and updates to the script are welcome. The following section outlines some of the common updates that may be required to enhance support for new product versions.
+All additions and updates to the script are welcome.
 
 ## Packaging the Script
 After you update the manifest updater and test the changes, you can build an RPM-based package for the script so that it can be installed on systems that use *yum* or *dnf*.
@@ -26,19 +26,6 @@ After you update the manifest updater and test the changes, you can build an RPM
 3. Run the build script:
    ```
    $ sh make.sh 1.0
-   ```
-4. Delete all previous versions of the package in the *build* directory.
-5. Add the latest version of the package in the *build* directory:
-   ```
-   $ git add build/pantheon-cmd-1.0-XX.noarch.rpm
-   ```
-6. Commit the changes:
-   ```
-   $ git commit -m "<commit message>"
-   ```
-7. Push the changes back to GitLab:
-   ```
-   $ git push origin master
    ```
 
 ## Installing the script
