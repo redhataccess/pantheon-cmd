@@ -1,204 +1,149 @@
-#!/usr/libexec/platform-python
+#!/usr/bin/python3
 
-import os
+import concurrent.futures
 import glob
-import pcutil
+import os
 import re
 import shutil
-import sys
+import subprocess
+import threading
 import yaml
 
-# Get the directory where the script is installed; use to find resources
-script_dir = os.path.dirname(os.path.realpath(__file__))
+lock = threading.Lock()
+
+current_count = 0
 
 
-# Process files
-def process_file(name, main_attributes_file, lang):
+def build_content(content_files, lang, repo_location, yaml_file_location):
+    """Attempts to build all specified files."""
+    content_count = len(content_files)
+    global current_count
 
-    global script_dir
-
-    # Create a temporary copy of the file, inject the attributes, and write content
-    with open(name + '.tmp', 'w') as output_file:
-
-        output_file.write('include::' + main_attributes_file + '[]\n\n')
-
-        if lang:
-
-            if lang == 'ja-JP':
-
-                output_file.write('include::' + script_dir + '/locales/attributes-ja.adoc[]\n\n')
-
-        coalesced_content = os.popen('ruby ' + script_dir + '/utils/asciidoc-coalescer.rb ' + name).read()
-
-        regex_images = 'image:(:?)(.*?)\/([a-zA-Z0-9_-]+)\.(.*?)\['
-
-        output_file.write(re.sub(regex_images,r'image:\1\3.\4[',coalesced_content))
-
-    # Run AsciiDoctor on the temporary copy
-    if lang:
-
-        if lang == 'ja-JP':
-
-            os.system('asciidoctor -a imagesdir=images -a lang=ja -T ' + script_dir + '/haml/html5/ -E haml ' + name + '.tmp')
-
-    else:
-
-        os.system('asciidoctor -a imagesdir=images -T ' + script_dir + '/haml/html5/ -E haml ' + name + '.tmp')
-
-    shutil.move(name.replace('.adoc', '.adoc.html'),'build/' + os.path.split(name)[1].replace('.adoc', '.html'))
-
-    # Delete the temporary copy
-    os.remove(name + '.tmp')    
-
-
-# Attempt to build all files in the pantheon2.yml file
-def build_all(lang):
-
-    yaml_file_location = pcutil.get_yaml_file()
-
-    content_counts = pcutil.count_content(yaml_file_location)
-
-    global script_dir
-
-    main_attributes_file = ''
-
-    # Remove build directory if it exists
-    if os.path.exists('build'):
-
-        shutil.rmtree('build')
+    current_count = 0
 
     # Parse the main YAML file
-    with open(yaml_file_location + 'pantheon2.yml', 'r') as f:
+    with open(yaml_file_location, 'r') as f:
+        main_yaml_file = yaml.safe_load(f)
 
-        main_yaml_file = yaml.load(f)
-
-    # Create a build directory
-    os.makedirs('build')
-    os.makedirs('build/images')
-
-    # Copy resources
-    for resource in main_yaml_file["resources"]:
-
-        for name in glob.glob(resource):
-
-            if name.endswith(('jpg','jpeg','png','svg')):
-
-                shutil.copy(name, 'build/images/')
-
-            else:
-
-                shutil.copy(name, 'build/')
-
-    # Copy styling resources
-    shutil.copytree(script_dir + '/resources', 'build/resources')
-
-    for item, docc in main_yaml_file.items():
-
+    for item, members in main_yaml_file.items():
         if item == 'variants':
+            attributes_file_location = repo_location + members[0]["path"]
+            break
 
-            main_attributes_file = yaml_file_location + docc[0]["path"]
+    try:
+        pool = concurrent.futures.ThreadPoolExecutor()
+        futures = []
+        for content_file in content_files:
+            futures.append(pool.submit(process_file, content_file, attributes_file_location, lang, content_count))
 
-    print("Building assemblies:\n")
+        pool.shutdown(wait=True)
+    except KeyboardInterrupt:
+        print("\nShutting down...\n")
 
-    current_assembly_count = 1
-
-    for assembly in main_yaml_file["assemblies"]:
-
-        for name in glob.glob(assembly):
-
-            print('\033[1mBuilding {0:d}/{1:d}:\033[0m {2:s}...'.format(current_assembly_count,content_counts['assemblies'],name))
-
-            process_file(name, main_attributes_file, lang)
-
-            current_assembly_count += 1
+        # Cancel pending futures
+        for future in futures:
+            if not future.running():
+                future.cancel()
+        return False
 
     print()
 
-    print("Building modules:\n")
-
-    current_module_count = 1
-
-    for module in main_yaml_file["modules"]:
-
-        for name in glob.glob(module):
-
-            print('\033[1mBuilding {0:d}/{1:d}:\033[0m {2:s}...'.format(current_module_count,content_counts['modules'],name))
-
-            process_file(name, main_attributes_file, lang)
-
-            current_module_count += 1
+    return True
 
 
-# Attempt to build only those files specified as an argument on the command line
-def build_subset(files,lang):
+def copy_resources(resources):
+    """Copy resources such as images and files to the build directory."""
+    script_dir = os.path.dirname(os.path.realpath(__file__))
 
-    yaml_file_location = pcutil.get_yaml_file()
+    # Copy resources
+    for resource in resources:
+        if resource.endswith(('jpg', 'jpeg', 'png', 'svg')):
+            shutil.copy(resource, 'build/images/')
+        else:
+            if not os.path.exists('build/files'):
+                os.makedirs('build/files')
+            shutil.copy(resource, 'build/files/')
 
-    global script_dir
+    # Copy styling resources
+    shutil.copytree(script_dir + '/resources', 'build/resources')
 
-    target_files = glob.glob(files)
-    total_files = len(target_files)
-    current_count = 1
+
+def prepare_build_directory():
+    """Removes any existing 'build' directory and creates the directory structure required."""
 
     # Remove build directory if it exists
     if os.path.exists('build'):
-
         shutil.rmtree('build')
-
-    # Parse the main YAML file
-    with open(yaml_file_location + 'pantheon2.yml', 'r') as f:
-
-        main_yaml_file = yaml.load(f)
 
     # Create a build directory
     os.makedirs('build')
     os.makedirs('build/images')
 
-    # Copy resources
-    for resource in main_yaml_file["resources"]:
 
-        for name in glob.glob(resource):
+def coalesce_document(main_file, attributes=None):
+    """Combines the content from includes into a single, contiguous source file."""
+    attributes = attributes or {}
+    lines = []
 
-            if name.endswith(('jpg','jpeg','png','svg')):
+    # Open the file, iterate over lines
+    if os.path.exists(main_file):
+        with open(main_file) as input_file:
+            for line in input_file:
+                # Process includes - recusrive
+                if line.startswith("include::"):
+                    include_file = line.replace("include::", "").split("[")[0]
+                    # Replace attributes in includes, if already detected
+                    if re.match(r'^\{\S+\}.*', include_file):
+                        attribute = re.search(r'\{(.*?)\}',include_file).group(1)
+                        if attribute in attributes.keys():
+                            include_file = include_file.replace('{' + attribute + '}',attributes[attribute])
+                    include_filepath = os.path.join(os.path.dirname(main_file), include_file)
+                    lines.extend(coalesce_document(include_filepath,attributes))
+                # Build dictionary of found attributes
+                elif re.match(r'^:\S+:.*', line):
+                    attribute_name = line.split(":")[1].strip()
+                    attribute_value = line.split(":")[2].strip()
+                    attributes[attribute_name] = attribute_value
+                    lines.append(line)
+                else:
+                    lines.append(line)
+    return lines
 
-                shutil.copy(name, 'build/images/')
 
-            else:
+def process_file(file_name, attributes_file_location, lang, content_count):
+    """Coalesces files and builds them using an AsciiDoctor sub-process."""
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+    global current_count
 
-                shutil.copy(name, 'build/')
-
-    # Copy styling resources
-    shutil.copytree(script_dir + '/resources', 'build/resources')
-
-    for item, docc in main_yaml_file.items():
-
-        if item == 'variants':
-
-            main_attributes_file = yaml_file_location + docc[0]["path"]
-
-    # Attempt to build specified files
-    for target_file in target_files:
-
-        print('\033[1mBuilding {0:d}/{1:d}:\033[0m {2:s}...'.format(current_count,total_files,target_file))
-
-        if not target_file.endswith('adoc'):
-
-            print ("Not an AsciiDoc file; skipping...")
-
-            current_count += 1
-
-            continue
-
-        elif not os.path.exists(target_file):
-
-            print ("File does not exist; skipping...")
-
-            current_count += 1
-
-            continue
-
-        else:
-
-            process_file(target_file, main_attributes_file, lang)
-
+    with lock:
         current_count += 1
+
+        print('\033[1mBuilding {0:d}/{1:d}:\033[0m {2:s}'.format(current_count, content_count, file_name))
+
+    # Create a temporary copy of the file, inject the attributes, and write content
+    with open(file_name + '.tmp', 'w') as output_file:
+        output_file.write('include::' + attributes_file_location + '[]\n\n')
+        if lang:
+            if lang == 'ja-JP':
+                output_file.write('include::' + script_dir + '/locales/attributes-ja.adoc[]\n\n')
+
+        coalesced_content = ''.join(coalesce_document(file_name))
+
+        regex_images = 'image:(:?)(.*?)\/([a-zA-Z0-9_-]+)\.(.*?)\['
+
+        output_file.write(re.sub(regex_images, r'image:\1\3.\4[', coalesced_content))
+
+    # Run AsciiDoctor on the temporary copy
+    if lang and lang == 'ja-JP':
+        cmd = ('asciidoctor -a toc! -a imagesdir=images -a lang=ja -T ' + script_dir + '/haml/ -E haml ' + file_name + '.tmp').split()
+    else:
+        cmd = ('asciidoctor -a toc! -a imagesdir=images -T ' + script_dir + '/haml/ -E haml ' + file_name + '.tmp').split()
+
+    # Build the content using AsciiDoctor
+    output = subprocess.run(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+
+    # Delete the temporary copy
+    os.remove(file_name + '.tmp')
+
+    # Move the output file to the build directory
+    shutil.move(file_name.replace('.adoc', '.adoc.html'),'build/' + os.path.split(file_name)[1].replace('.adoc', '.html'))
