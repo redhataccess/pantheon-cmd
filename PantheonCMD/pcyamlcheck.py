@@ -115,10 +115,9 @@ def get_missing_variant_keys(report, yaml_file, required_values):
 
     if yaml_file['resources'] != None:
         for item in (yaml_file['resources']):
-            path_to_images_dir = glob.glob(item)
-            for path in path_to_images_dir:
-                if not os.path.exists(path):
-                    false_dir.append(path_to_images_dir)
+            path_to_images_dir = os.path.split(item)[0]
+            if not glob.glob(path_to_images_dir):
+                false_dir.append(path_to_images_dir)
     if false_dir:
         report.create_report('files or directories do not exist in your repository', sorted(false_dir, key=str.lower))
 
