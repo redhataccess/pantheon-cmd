@@ -6,7 +6,7 @@ Group:     Applications/Accessories
 Version:   1.0
 Release:   0%{?dist}
 BuildRoot: %{_builddir}/%{name}-buildroot
-Packager:  Andrew Dahms
+Packager:  Red Hat
 BuildArch: noarch
 %if 0%{!?fedora}
 Requires:  python36
@@ -16,7 +16,7 @@ Requires:  ruby
 Source:    %{name}-%{version}.tar.gz
 
 %description
-Builds Pantheon V2 content.
+Validates the structure of and generates previews for modular documentation.
 
 %prep
 %setup -q
@@ -39,6 +39,7 @@ install -m 0755 pcchecks.py $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/pcchecks.py
 install -m 0755 pcmd.py $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/pcmd.py
 install -m 0755 pcutil.py $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/pcutil.py
 install -m 0755 pcvalidator.py $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/pcvalidator.py
+install -m 0755 pcyamlcheck.py $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/pcyamlcheck.py
 install -m 0755 pv2yml-generator.sh $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/pv2yml-generator.sh
 install -m 0755 pcmd $RPM_BUILD_ROOT%{_bindir}/pcmd
 
