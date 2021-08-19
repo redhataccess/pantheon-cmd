@@ -7,6 +7,21 @@
 # Usage: sh make.sh 1.0
 # ==================================================
 
+# error handling
+trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
+terminate()
+{
+    echo >&2 '
+*** terminated ***
+'
+    echo "\"$last_command\" command failed with exit code $?."
+    exit 1
+}
+
+trap 'terminate' 0
+
+set -e
+
 CURRENT_DIR=`pwd`
 
 echo 'Building pantheon-cmd...'
@@ -24,36 +39,46 @@ if [ ! -d "PantheonCMD/pantheon-cmd-$1" ]; then
 
 fi
 
-cp PantheonCMD/* PantheonCMD/pantheon-cmd-$1
-cp -r PantheonCMD/haml PantheonCMD/pantheon-cmd-$1
-cp -r PantheonCMD/resources PantheonCMD/pantheon-cmd-$1
-cp -r PantheonCMD/locales PantheonCMD/pantheon-cmd-$1
+# Get HAML templates
+mkdir PantheonCMD/haml
 
-cd PantheonCMD
+echo 'Getting remote resources...'
+
+svn checkout https://github.com/redhataccess/pantheon/trunk/pantheon-bundle/src/main/resources/apps/pantheon/templates/haml/html5 PantheonCMD/haml
+
+# Replace remote CSS locations with local ones
+sed -i 's/^-\ pantheonCssPath.*/-\ pantheonCssPath\ \=\ \"resources\/rhdocs.min.css\"/' PantheonCMD/haml/document.html.haml
+sed -i 's/href\=\"https\:\/\/static\.redhat\.com\/libs\/redhat\/redhat-font\/2\/webfonts\/red-hat-font\.css/href\=\"resources\/red-hat-font.css/' PantheonCMD/haml/document.html.haml
+
+# with find cp doesn't print 'omitting directory'
+find PantheonCMD/* -maxdepth 0 -type f -exec cp {} PantheonCMD/pantheon-cmd-$1 \;
+cp -r PantheonCMD/{haml,resources,locales} PantheonCMD/pantheon-cmd-$1
 
 # Package sources ditectory
-tar cvf pantheon-cmd-$1.tar pantheon-cmd-$1
+tar cvfz PantheonCMD/pantheon-cmd-$1.tar.gz -C PantheonCMD/ pantheon-cmd-$1
 
-gzip -f pantheon-cmd-$1.tar
-
-cd ..
+# Create rpmbuild dir and structure if it doesn't already exist
+if [ ! -d "~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS}" ]; then
+    mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS}
+fi
 
 # Move build files to the local build root
 cp PantheonCMD/pantheon-cmd-$1.tar.gz ~/rpmbuild/SOURCES
+
 cp build/pantheon-cmd.spec ~/rpmbuild/SPECS
 
 # Build the package
-cd ~/rpmbuild/SPECS/
+rpmbuild -ba ~/rpmbuild/SPECS/pantheon-cmd.spec
 
-rpmbuild -ba pantheon-cmd.spec
-
-# Return to PWD
-cd $CURRENT_DIR
-
-rm -rf PantheonCMD/pantheon-cmd-$1
-rm PantheonCMD/pantheon-cmd-$1.tar.gz
+rm -rf PantheonCMD/pantheon-cmd-$1*
 
 # Retrieve package
-cp ~/rpmbuild/RPMS/noarch/pantheon-cmd* build
+cp ~/rpmbuild/RPMS/noarch/pantheon-cmd* build/
 
+rm -rf PantheonCMD/haml
 
+trap : 0
+
+echo >&2 '
+*** DONE ***
+'
