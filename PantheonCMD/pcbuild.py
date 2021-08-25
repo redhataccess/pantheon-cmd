@@ -28,13 +28,15 @@ def build_content(content_files, lang, repo_location, yaml_file_location):
     for item, members in main_yaml_file.items():
         if item == 'variants':
             attributes_file_location = repo_location + members[0]["path"]
+            with open(attributes_file_location,'r') as attributes_file:
+                attributes = attributes_file.read()
             break
 
     try:
         pool = concurrent.futures.ThreadPoolExecutor()
         futures = []
         for content_file in content_files:
-            futures.append(pool.submit(process_file, content_file, attributes_file_location, lang, content_count))
+            futures.append(pool.submit(process_file, content_file, attributes, lang, content_count))
 
         pool.shutdown(wait=True)
     except KeyboardInterrupt:
@@ -89,6 +91,9 @@ def coalesce_document(main_file, attributes=None):
     if os.path.exists(main_file):
         with open(main_file) as input_file:
             for line in input_file:
+                # Process comments
+                if line.startswith('//'):
+                    continue
                 # Process includes - recusrive
                 if line.startswith("include::"):
                     include_file = line.replace("include::", "").split("[")[0]
@@ -110,7 +115,7 @@ def coalesce_document(main_file, attributes=None):
     return lines
 
 
-def process_file(file_name, attributes_file_location, lang, content_count):
+def process_file(file_name, attributes, lang, content_count):
     """Coalesces files and builds them using an AsciiDoctor sub-process."""
     script_dir = os.path.dirname(os.path.realpath(__file__))
     global current_count
@@ -122,12 +127,13 @@ def process_file(file_name, attributes_file_location, lang, content_count):
 
     # Create a temporary copy of the file, inject the attributes, and write content
     with open(file_name + '.tmp', 'w') as output_file:
-        output_file.write('include::' + attributes_file_location + '[]\n\n')
+        output_file.write(attributes + '\n\n')
         if lang:
             if lang == 'ja-JP':
                 output_file.write('include::' + script_dir + '/locales/attributes-ja.adoc[]\n\n')
 
         coalesced_content = ''.join(coalesce_document(file_name))
+        coalesced_content = re.sub(r'\n\s*\n', '\n\n', coalesced_content)
 
         regex_images = 'image:(:?)(.*?)\/([a-zA-Z0-9_-]+)\.(.*?)\['
 
