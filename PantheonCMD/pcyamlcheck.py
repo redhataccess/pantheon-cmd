@@ -1,11 +1,13 @@
 #!/usr/bin/python3
 
 import os
-import yaml
 import sys
+import glob
+import yaml
 
 
 class Printing():
+    """Create and print report."""
 
     def __init__(self):
         self.report = {}
@@ -19,6 +21,7 @@ class Printing():
         self.report[message].append(items)
 
     def print_report(self):
+        """Print report."""
         separator = "\n\t"
 
         for message, items in self.report.items():
@@ -28,13 +31,13 @@ class Printing():
 
 
 def get_yaml_syntax_errors(self):
+    """Check size and syntax of the yaml file"""
     if os.path.getsize(self.yaml_file_location) > 0:
 
         with open(self.yaml_file_location, 'r') as f:
 
             try:
                 yaml.safe_load(f)
-                print("No syntax errors detected.")
             except yaml.YAMLError:
                 sys.exit("There's a syntax error in your pantheon2.yml file. Please fix it and try again.\nTo detect an error try running yaml lint on your pantheo2.yml file.")
 
@@ -42,9 +45,12 @@ def get_yaml_syntax_errors(self):
         sys.exit("Your pantheon2.yml file is empty; exiting...")
 
 
-def get_missing_yaml_keys(self):
+def get_missing_or_empty_yaml_keys(self):
+    """Get yaml keys that are empty or missing."""
 
+    empty_keys = []
     key_missing = []
+
     with open(self.yaml_file_location, 'r') as f:
         data = yaml.safe_load(f)
         keys = data.keys()
@@ -55,24 +61,32 @@ def get_missing_yaml_keys(self):
         for key in required_keys:
             if key not in keys:
                 key_missing.append(key)
+            else:
+                if data[key] is None:
+                    empty_keys.append(key)
+
+    return key_missing, empty_keys
+
+
+def get_missing_keys(self):
+    """Return missing keys."""
+    key_missing, empty_keys = get_missing_or_empty_yaml_keys(self)
 
     return(sorted(key_missing, key=str.lower))
 
 
-def get_empty_values(report, yaml_file, keys):
+def get_empty_values(self):
+    """Return empty keys."""
+    key_missing, empty_keys = get_missing_or_empty_yaml_keys(self)
 
-    empty_keys = []
-
-    for key in keys:
-        if yaml_file[key] == None:
-            empty_keys.append(key)
-    if empty_keys:
-        report.create_report('values are empty', sorted(empty_keys, key=str.lower))
+    return(sorted(empty_keys, key=str.lower))
 
 
 def get_missing_variant_keys(report, yaml_file, required_values):
+    """Get missing variant keys and check their values"""
     missing_value = []
 
+    #FIXME: this code is redundant as skript exits if get_missing_variant_keys function has any value
     if yaml_file['variants'] is None:
         report.create_report('values are missing under "variants"', sorted(required_values, key=str.lower))
         return
@@ -111,27 +125,33 @@ def get_missing_variant_keys(report, yaml_file, required_values):
             report.create_report('files or directories do not exist in your repository', path_does_not_exist)
 
     false_dir = []
+    empty_dir = []
 
     if yaml_file['resources'] != None:
         for item in (yaml_file['resources']):
             path_to_images_dir = os.path.split(item)[0]
-            if not os.path.exists(path_to_images_dir):
+            if not glob.glob(path_to_images_dir):
                 false_dir.append(path_to_images_dir)
+            else:
+                if len(os.listdir(path_to_images_dir)) == 0:
+                    empty_dir.append(path_to_images_dir)
+
     if false_dir:
         report.create_report('files or directories do not exist in your repository', sorted(false_dir, key=str.lower))
 
+    if empty_dir:
+        report.create_report('directory is empty', sorted(empty_dir, key=str.lower))
+
 
 def yaml_validator(self):
+    """Validates variant yaml keys."""
     report = Printing()
 
     with open(self.yaml_file_location, 'r') as f:
         data = yaml.safe_load(f)
 
-        required_keys = (['server', 'repository', 'variants', 'assemblies', 'modules', 'resources'])
-
         required_variant_keys = (['name', 'path', 'canonical'])
 
-        get_empty_values(report, data, required_keys)
         get_missing_variant_keys(report, data, required_variant_keys)
 
     return report
