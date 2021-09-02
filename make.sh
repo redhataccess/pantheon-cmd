@@ -46,7 +46,6 @@ echo 'Getting HAML templates...'
 
 svn checkout https://github.com/redhataccess/pantheon/trunk/pantheon-bundle/src/main/resources/apps/pantheon/templates/haml/html5 PantheonCMD/haml
 
-rm -rf PantheonCMD/haml/.svn
 
 # Get locales
 mkdir PantheonCMD/locales
