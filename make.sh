@@ -55,7 +55,7 @@ echo 'Getting locales...'
 
 svn checkout https://github.com/asciidoctor/asciidoctor/trunk/data/locale PantheonCMD/locales
 
-rm -rf PantheonCMD/locales/.svn
+rm -rf PantheonCMD/{haml,locales}/.svn
 
 # Replace remote CSS locations with local ones
 sed -i 's/^-\ pantheonCssPath.*/-\ pantheonCssPath\ \=\ \"resources\/rhdocs.min.css\"/' PantheonCMD/haml/document.html.haml
