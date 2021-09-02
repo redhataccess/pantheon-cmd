@@ -22,8 +22,6 @@ trap 'terminate' 0
 
 set -e
 
-CURRENT_DIR=`pwd`
-
 echo 'Building pantheon-cmd...'
 
 # Check arguments
