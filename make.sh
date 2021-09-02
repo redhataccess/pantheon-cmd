@@ -7,7 +7,7 @@
 # Usage: sh make.sh 1.0
 # ==================================================
 
-# error handling
+# Error handling
 trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 terminate()
 {
@@ -42,9 +42,20 @@ fi
 # Get HAML templates
 mkdir PantheonCMD/haml
 
-echo 'Getting remote resources...'
+echo 'Getting HAML templates...'
 
 svn checkout https://github.com/redhataccess/pantheon/trunk/pantheon-bundle/src/main/resources/apps/pantheon/templates/haml/html5 PantheonCMD/haml
+
+rm -rf PantheonCMD/haml/.svn
+
+# Get locales
+mkdir PantheonCMD/locales
+
+echo 'Getting locales...'
+
+svn checkout https://github.com/asciidoctor/asciidoctor/trunk/data/locale PantheonCMD/locales
+
+rm -rf PantheonCMD/locales/.svn
 
 # Replace remote CSS locations with local ones
 sed -i 's/^-\ pantheonCssPath.*/-\ pantheonCssPath\ \=\ \"resources\/rhdocs.min.css\"/' PantheonCMD/haml/document.html.haml
@@ -76,6 +87,7 @@ rm -rf PantheonCMD/pantheon-cmd-$1*
 cp ~/rpmbuild/RPMS/noarch/pantheon-cmd* build/
 
 rm -rf PantheonCMD/haml
+rm -rf PantheonCMD/locales
 
 trap : 0
 
