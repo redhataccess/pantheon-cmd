@@ -39,17 +39,15 @@ if [ ! -d "PantheonCMD/pantheon-cmd-$1" ]; then
 
 fi
 
-# Get HAML templates
-mkdir PantheonCMD/haml
+# Create resource directories
+mkdir PantheonCMD/{haml,locales}
 
+# Get HAML templates
 echo 'Getting HAML templates...'
 
 svn checkout https://github.com/redhataccess/pantheon/trunk/pantheon-bundle/src/main/resources/apps/pantheon/templates/haml/html5 PantheonCMD/haml
 
-
 # Get locales
-mkdir PantheonCMD/locales
-
 echo 'Getting locales...'
 
 svn checkout https://github.com/asciidoctor/asciidoctor/trunk/data/locale PantheonCMD/locales
