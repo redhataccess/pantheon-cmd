@@ -85,8 +85,7 @@ rm -rf PantheonCMD/pantheon-cmd-$1*
 # Retrieve package
 cp ~/rpmbuild/RPMS/noarch/pantheon-cmd* build/
 
-rm -rf PantheonCMD/haml
-rm -rf PantheonCMD/locales
+rm -rf PantheonCMD/{haml,locales}
 
 trap : 0
 
