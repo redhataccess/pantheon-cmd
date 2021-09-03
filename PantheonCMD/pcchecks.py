@@ -26,7 +26,7 @@ class Regex:
     VAR_IN_TITLE = re.compile(r'(?<!\=)=\s.*{.*}.*')
     INLINE_ANCHOR = re.compile(r'=.*\[\[.*\]\]')
     UI_MACROS = re.compile(r'btn:\[.*\]|menu:.*\]|kbd:.*\]')
-    HTML_MARKUP = re.compile(r'<.*>.*<\/.*>|<.*>\n.*\n</.*>')
+    HTML_MARKUP = re.compile(r'(?<!\`|_)<.*>.*<\/.*>|<.*>\n.*\n</.*>(?!\`|_)')
     INTERNAL_IFDEF = re.compile(r'(ifdef::internal\[\])(.*\n)*?(endif::\[\])')
     CODE_BLOCK_DASHES = re.compile(r'(-{4,})(.*\n)*?(-{4,})')
     CODE_BLOCK_DOTS = re.compile(r'(\.{4,})(.*\n)*?(\.{4,})')
