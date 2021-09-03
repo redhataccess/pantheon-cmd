@@ -44,8 +44,10 @@ def parse_args():
     # 'Validate' command
     parser_d = subparsers.add_parser('validate', help='Validate entries in your pantheon2.yml file.')
 
+    parser_e = subparsers.add_parser('validate-merge-request', help='Validate files commited on a merge request.')
+
     # 'Generate' command
-    parser_e = subparsers.add_parser('generate', help='Generate pantheon2.yml file from a template.')
+    parser_f = subparsers.add_parser('generate', help='Generate pantheon2.yml file from a template.')
 
     return parser.parse_args()
 
@@ -214,3 +216,9 @@ if __name__ == "__main__":
         else:
 
             print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")
+
+
+    # Action - validate files on a merge request
+    elif args.command == 'validate-merge-request':
+        path_to_script = os.path.dirname(os.path.realpath(__file__))
+        call("sh " + path_to_script + "/merge-request-validator.sh", shell=True)
