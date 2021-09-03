@@ -12,7 +12,7 @@ undetermined_file_type = os.environ.get('undetermined_file_type').split()
 validate = validation(changed_files, all_modules, all_assemblies)
 
 if validate.count != 0:
-    print("\nThe following files that did not pass validation:\n")
+    print("\nThe following files did not pass validation:\n")
     validate.print_report()
     if undetermined_file_type:
         print("\nThe following files can not be identifiyed as modules or assemblies:\n")
