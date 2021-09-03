@@ -29,8 +29,10 @@ def build_content(content_files, lang, repo_location, yaml_file_location):
         if item == 'variants':
             attributes_file_location = repo_location + members[0]["path"]
             with open(attributes_file_location,'r') as attributes_file:
-                attributes = attributes_file.read()
+                attributes = attributes_file.readlines()
             break
+
+    attributes = parse_attributes(attributes)
 
     try:
         pool = concurrent.futures.ThreadPoolExecutor()
@@ -51,6 +53,20 @@ def build_content(content_files, lang, repo_location, yaml_file_location):
     print()
 
     return True
+
+
+def parse_attributes(attributes):
+    """Read an attributes file and parse values into a key:value dictionary."""
+
+    final_attributes = {}
+
+    for line in attributes:
+        if re.match(r'^:\S+:.*', line):
+            attribute_name = line.split(":")[1].strip()
+            attribute_value = line.split(":")[2].strip()
+            final_attributes[attribute_name] = attribute_value
+
+    return final_attributes
 
 
 def copy_resources(resources):
@@ -82,7 +98,24 @@ def prepare_build_directory():
     os.makedirs('build/images')
 
 
-def coalesce_document(main_file, attributes=None):
+def resolve_attribute_tree(line,attributes):
+    """Attempt to recursively resolve AsciiDoc attributes into a string."""
+
+    not_resolved = True
+
+    while not_resolved:
+        if re.match(r'.*\{\S+\}.*', line):
+            for attribute in re.search(r'\{(.*?)\}',line).groups():
+                if attribute in attributes.keys():
+                    line = line.replace('{' + attribute + '}',attributes[attribute])
+                else:
+                    not_resolved = False
+        else:
+            not_resolved = False
+
+    return line
+
+def coalesce_document(main_file, attributes=None, depth=1, top_level=True):
     """Combines the content from includes into a single, contiguous source file."""
     attributes = attributes or {}
     lines = []
@@ -94,16 +127,21 @@ def coalesce_document(main_file, attributes=None):
                 # Process comments
                 if line.startswith('//'):
                     continue
+                # Process depth
+                if line.strip().startswith('= '):
+                    lines.append(('=' * depth) + ' ' + line.split('= ')[1])
                 # Process includes - recusrive
-                if line.startswith("include::"):
+                elif line.startswith("include::"):
+                    include_depth = 1
                     include_file = line.replace("include::", "").split("[")[0]
+                    include_options = line.split("[")[1].split("]")[0]
+                    if include_options.__contains__("="):
+                        include_depth += int(include_options.split("=")[1])
                     # Replace attributes in includes, if already detected
                     if re.match(r'^\{\S+\}.*', include_file):
-                        attribute = re.search(r'\{(.*?)\}',include_file).group(1)
-                        if attribute in attributes.keys():
-                            include_file = include_file.replace('{' + attribute + '}',attributes[attribute])
+                        include_file = resolve_attribute_tree(include_file)
                     include_filepath = os.path.join(os.path.dirname(main_file), include_file)
-                    lines.extend(coalesce_document(include_filepath,attributes))
+                    lines.extend(coalesce_document(include_filepath,attributes,include_depth,False))
                 # Build dictionary of found attributes
                 elif re.match(r'^:\S+:.*', line):
                     attribute_name = line.split(":")[1].strip()
@@ -112,6 +150,13 @@ def coalesce_document(main_file, attributes=None):
                     lines.append(line)
                 else:
                     lines.append(line)
+
+            if top_level:
+                lines.insert(0,'\n\n')
+                for attribute in sorted(attributes.keys(),reverse=True):
+                    lines.insert(0,':' + attribute + ':' + attributes[attribute] + '\n')
+                lines.insert(0,'// Global attributes\n')
+                
     return lines
 
 
@@ -127,12 +172,11 @@ def process_file(file_name, attributes, lang, content_count):
 
     # Create a temporary copy of the file, inject the attributes, and write content
     with open(file_name + '.tmp', 'w') as output_file:
-        output_file.write(attributes + '\n\n')
         if lang:
             if lang == 'ja-JP':
                 output_file.write('include::' + script_dir + '/locales/attributes-ja.adoc[]\n\n')
 
-        coalesced_content = ''.join(coalesce_document(file_name))
+        coalesced_content = ''.join(coalesce_document(file_name, attributes,1,True))
         coalesced_content = re.sub(r'\n\s*\n', '\n\n', coalesced_content)
 
         regex_images = 'image:(:?)(.*?)\/([a-zA-Z0-9_-]+)\.(.*?)\['
@@ -153,3 +197,4 @@ def process_file(file_name, attributes, lang, content_count):
 
     # Move the output file to the build directory
     shutil.move(file_name.replace('.adoc', '.adoc.html'),'build/' + os.path.split(file_name)[1].replace('.adoc', '.html'))
+
