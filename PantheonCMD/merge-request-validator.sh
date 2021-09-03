@@ -26,7 +26,7 @@ export -f erase_comments
 #xargs -P 0 -I %% bash -c 'erase_comments "%%" | grep -q ":_module-type:" && echo "%%"' )
 
 if [ ! -z "$no_prefix_files" ]; then
-    no_prefix_modules=$(echo $no_prefix_files | while read line; do grep -l ":_module-type:" $line; done )
+    no_prefix_modules=$(echo "$changed_files" | xargs -P 0 -I %% bash -c 'erase_comments "%%" | grep -q ":_module-type:" && echo "%%"')
 
     no_moudle_type_files=$(echo $no_prefix_files | while read line; do grep -HLE ":_module-type:" $line; done )
 
