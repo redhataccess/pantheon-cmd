@@ -15,8 +15,8 @@ class Tags:
 class Regex:
     """Define regular expresiions for the checks."""
 
-    VANILLA_XREF = re.compile(r'<<.*>>')
-    # PSEUDO_VANILLA_XREF = re.compile(r'<<.* .*>>')
+    # should exclude pseudo vanilla like <<some content>>
+    VANILLA_XREF = re.compile(r'<<[^\s]*>>')
     MULTI_LINE_COMMENT = re.compile(r'(/{4,})(.*\n)*?(/{4,})')
     SINGLE_LINE_COMMENT = re.compile(r'(?<!\/\/)(?<!\/)^\/\/(?!\/\/).*\n', re.M)
     EMPTY_LINE_AFTER_ABSTRACT = re.compile(r'\[role="_abstract"]\n(?=\n)')
