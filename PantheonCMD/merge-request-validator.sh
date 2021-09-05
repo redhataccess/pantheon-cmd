@@ -7,7 +7,7 @@ master_main=$(git rev-parse --abbrev-ref origin/HEAD | cut -d/ -f2)
 current_branch=$(git rev-parse --abbrev-ref HEAD)
 
 # find the changed files between master and current branch
-changed_files=$(git diff --diff-filter=ACM --name-only "$master_main"..."$current_branch" -- '*.adoc')
+changed_files=$(git diff --diff-filter=ACM --name-only "$master_main"..."$current_branch" -- '*.adoc' ':!*master.adoc')
 
 # collect assemblies with prefix in the name
 prefix_assemblies=$(echo "$changed_files" | tr ' ' '\n' | grep -e '.*/\(assembly\).*\.adoc')
