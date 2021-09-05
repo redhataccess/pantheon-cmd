@@ -3,12 +3,13 @@
 import os
 from pcvalidator import validation
 
-# Imports variables collected with pcpr
+# Imports variables collected with bash script
 changed_files = os.environ.get('changed_files').split()
 all_assemblies = os.environ.get('all_assemblies').split()
 all_modules = os.environ.get('all_modules').split()
 undetermined_file_type = os.environ.get('undetermined_file_type').split()
 
+# call validation from the main validation script
 validate = validation(changed_files, all_modules, all_assemblies)
 
 if validate.count != 0:
