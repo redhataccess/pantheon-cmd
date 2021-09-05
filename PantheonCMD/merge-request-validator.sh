@@ -9,16 +9,16 @@ current_branch=$(git rev-parse --abbrev-ref HEAD)
 # find the changed files between master and current branch
 changed_files=$(git diff --diff-filter=ACM --name-only "$master_main"..."$current_branch" -- '*.adoc')
 
-# collecting assemblies with prefix in the name
+# collect assemblies with prefix in the name
 prefix_assemblies=$(echo "$changed_files" | tr ' ' '\n' | grep -e '.*/\(assembly\).*\.adoc')
 
-# collecting modules with prefix in the name
+# collect modules with prefix in the name
 prefix_modules=$(echo "$changed_files" | tr ' ' '\n' | grep -e '.*/\(proc\|con\|ref\).*\.adoc')
 
-# collecting files with no prefix in the name
+# collect files with no prefix in the name
 no_prefix_files=$(echo "$changed_files" | tr ' ' '\n' | grep -ve '.*/\(proc\|con\|ref\|assembly\).*\.adoc')
 
-# getting rid of the comments
+# get rid of the comments
 function erase_comments {
     filenames="$1"
     sed -re "\|^////|,\|^////|d" "$1" | sed -re "\|^//.*$|d"
