@@ -9,11 +9,11 @@ current_branch=$(git rev-parse --abbrev-ref HEAD)
 # find the changed files between master and current branch
 changed_files=$(git diff --diff-filter=ACM --name-only "$master_main"..."$current_branch" -- '*.adoc')
 
-prefix_assemblies=$(echo "$changed_files" | tr ' ' '\n' | grep -e '.*/\(assembly\).*\.adoc' | tr '\n' ' ')
+prefix_assemblies=$(echo "$changed_files" | tr ' ' '\n' | grep -e '.*/\(assembly\).*\.adoc')
 
-prefix_modules=$(echo "$changed_files" | tr ' ' '\n' | grep -e '.*/\(proc\|con\|ref\).*\.adoc' | tr '\n' ' ')
+prefix_modules=$(echo "$changed_files" | tr ' ' '\n' | grep -e '.*/\(proc\|con\|ref\).*\.adoc')
 
-no_prefix_files=$(echo "$changed_files" | tr ' ' '\n' | grep -ve '.*/\(proc\|con\|ref\|assembly\).*\.adoc' | tr '\n' ' ')
+no_prefix_files=$(echo "$changed_files" | tr ' ' '\n' | grep -ve '.*/\(proc\|con\|ref\|assembly\).*\.adoc')
 
 # Getting rid of the comments
 function erase_comments {
@@ -23,17 +23,17 @@ function erase_comments {
 
 export -f erase_comments
 
-#xargs -P 0 -I %% bash -c 'erase_comments "%%" | grep -q ":_module-type:" && echo "%%"' )
-
 if [ ! -z "$no_prefix_files" ]; then
-    no_prefix_modules=$(echo "$changed_files" | xargs -P 0 -I %% bash -c 'erase_comments "%%" | grep -q ":_module-type:" && echo "%%"')
+    no_prefix_modules=$(echo -e "$no_prefix_files" | xargs -P 0 -I %% bash -c 'erase_comments "%%" | grep -q ":_module-type: \(PROCEDURE\|CONCEPT\|REFERENCE\)" && echo "%%"')
 
-    no_moudle_type_files=$(echo $no_prefix_files | while read line; do grep -HLE ":_module-type:" $line; done )
+    no_moudle_type_files=$(echo -e "$no_prefix_files" | xargs -P 0 -I %% bash -c 'erase_comments "%%" | grep -q ":_module-type: \(PROCEDURE\|CONCEPT\|REFERENCE\)" || echo "%%"')
 
-    no_prefix_assemblies=$(echo $no_moudle_type_files | while read line; do grep -l "^include::.*\.adoc.*\]" $line; done )
+    no_prefix_assemblies=$(echo -e "$no_moudle_type_files" | xargs -P 0 -I %% bash -c 'erase_comments "%%" | grep -q "^include::.*\.adoc.*\]" && echo "%%"')
 
-    undetermined_file_type=$(echo $no_prefix_files | while read line; do grep -HLE ":_module-type:|^include::.*\.adoc.*\]" $line; done )
+    undetermined_file_type=$(echo -e "$no_prefix_files" | xargs -P 0 -I %% bash -c 'erase_comments "%%" | grep -qE ":_module-type: \(PROCEDURE\|CONCEPT\|REFERENCE\)|^include::.*\.adoc.*\]" || echo "%%"')
 fi
+
+echo $no_moudle_type_files
 
 if [ ! -z "$prefix_assemblies" ] || [ ! -z "$no_prefix_assemblies" ]; then
     all_assemblies="${prefix_assemblies} ${no_prefix_assemblies}"
