@@ -30,7 +30,7 @@ def parse_args():
     # Main subparsers
     subparsers = parser.add_subparsers(dest='command')
 
-    # 'Compile' command
+    # 'Preview' command
     parser_a = subparsers.add_parser('preview', help='Build a preview of content.')
     parser_a.add_argument('--files', help='The files to target.')
     parser_a.add_argument('--lang', help='The language to build. For example, ja-JP.')
