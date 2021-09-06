@@ -98,22 +98,22 @@ def prepare_build_directory():
     os.makedirs('build/images')
 
 
-def resolve_attribute_tree(line,attributes):
+def resolve_attribute_tree(content, attributes):
     """Attempt to recursively resolve AsciiDoc attributes into a string."""
 
-    not_resolved = True
+    continue_processing = True
 
-    while not_resolved:
-        if re.match(r'.*\{\S+\}.*', line):
-            for attribute in re.search(r'\{(.*?)\}',line).groups():
+    while continue_processing:
+        if re.match(r'.*\{\S+\}.*', content):
+            for attribute in re.search(r'\{(.*?)\}', content).groups():
                 if attribute in attributes.keys():
-                    line = line.replace('{' + attribute + '}',attributes[attribute])
+                    content = content.replace('{' + attribute + '}',attributes[attribute])
                 else:
-                    not_resolved = False
+                    continue_processing = False
         else:
-            not_resolved = False
+            continue_processing = False
+    return content
 
-    return line
 
 def coalesce_document(main_file, attributes=None, depth=1, top_level=True):
     """Combines the content from includes into a single, contiguous source file."""
@@ -123,11 +123,12 @@ def coalesce_document(main_file, attributes=None, depth=1, top_level=True):
     # Open the file, iterate over lines
     if os.path.exists(main_file):
         with open(main_file) as input_file:
+            # Iterate over content
             for line in input_file:
                 # Process comments
                 if line.startswith('//'):
                     continue
-                # Process depth
+                # Process section depth
                 if line.strip().startswith('= '):
                     lines.append(('=' * depth) + ' ' + line.split('= ')[1])
                 # Process includes - recusrive
@@ -137,11 +138,12 @@ def coalesce_document(main_file, attributes=None, depth=1, top_level=True):
                     include_options = line.split("[")[1].split("]")[0]
                     if include_options.__contains__("="):
                         include_depth += int(include_options.split("=")[1])
-                    # Replace attributes in includes, if already detected
+                    # Replace attributes in includes, if their values are defined
                     if re.match(r'^\{\S+\}.*', include_file):
                         include_file = resolve_attribute_tree(include_file)
                     include_filepath = os.path.join(os.path.dirname(main_file), include_file)
-                    lines.extend(coalesce_document(include_filepath,attributes,include_depth,False))
+                    include_lines = coalesce_document(include_filepath,attributes,include_depth,False)
+                    lines.extend(include_lines)
                 # Build dictionary of found attributes
                 elif re.match(r'^:\S+:.*', line):
                     attribute_name = line.split(":")[1].strip()
@@ -150,13 +152,13 @@ def coalesce_document(main_file, attributes=None, depth=1, top_level=True):
                     lines.append(line)
                 else:
                     lines.append(line)
-
+            # Add global attribute definitions if main file
             if top_level:
                 lines.insert(0,'\n\n')
                 for attribute in sorted(attributes.keys(),reverse=True):
                     lines.insert(0,':' + attribute + ':' + attributes[attribute] + '\n')
                 lines.insert(0,'// Global attributes\n')
-                
+
     return lines
 
 
@@ -176,7 +178,7 @@ def process_file(file_name, attributes, lang, content_count):
             if lang == 'ja-JP':
                 output_file.write('include::' + script_dir + '/locales/attributes-ja.adoc[]\n\n')
 
-        coalesced_content = ''.join(coalesce_document(file_name, attributes,1,True))
+        coalesced_content = ''.join(coalesce_document(file_name, attributes, 1, True))
         coalesced_content = re.sub(r'\n\s*\n', '\n\n', coalesced_content)
 
         regex_images = 'image:(:?)(.*?)\/([a-zA-Z0-9_-]+)\.(.*?)\['
