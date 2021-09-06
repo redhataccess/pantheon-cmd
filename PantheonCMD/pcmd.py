@@ -34,6 +34,7 @@ def parse_args():
     # 'Preview' command
     parser_a = subparsers.add_parser('preview', help='Build a preview of content.')
     parser_a.add_argument('--files', help='The files to target.')
+    parser_a.add_argument('--format', help='The format of the files to output. For example, HTML, PDF.')
     parser_a.add_argument('--lang', help='The language to build. For example, ja-JP.')
 
     # 'Clean' command
@@ -74,6 +75,13 @@ if __name__ == "__main__":
     # Else parse actions
     # Action - preview
     if args.command == 'preview':
+
+        if args.format:
+            if args.format == 'pdf':
+                output_format = 'pdf'
+            else:
+                output_format = 'html'
+
         # Did a user specify a set of files? If so, only build those.
         if args.files:
             # Handle different interpretations of directories
@@ -93,7 +101,7 @@ if __name__ == "__main__":
             else:
                 pcbuild.prepare_build_directory()
                 pcbuild.copy_resources(pantheon_repo.get_existing_content("resources"))
-                pcbuild.build_content(content_subset, args.lang, pantheon_repo.repo_location, pantheon_repo.yaml_file_location)
+                pcbuild.build_content(content_subset, args.lang, output_format, pantheon_repo.repo_location, pantheon_repo.yaml_file_location)
         # Otherwise, attempt to build all files in the pantheon2.yml file.
         else:
             if os.path.exists('pantheon2.yml'):
@@ -106,7 +114,7 @@ if __name__ == "__main__":
                 for content_type in content_types:
                     if continue_run:
                         print("Building %s...\n" % content_type)
-                        continue_run = pcbuild.build_content(pantheon_repo.get_existing_content(content_type), args.lang, pantheon_repo.repo_location, pantheon_repo.yaml_file_location)
+                        continue_run = pcbuild.build_content(pantheon_repo.get_existing_content(content_type), args.lang, output_format, pantheon_repo.repo_location, pantheon_repo.yaml_file_location)
             else:
                 print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")
                 sys.exit(1)

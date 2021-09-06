@@ -14,7 +14,7 @@ lock = threading.Lock()
 current_count = 0
 
 
-def build_content(content_files, lang, repo_location, yaml_file_location):
+def build_content(content_files, lang, output_format, repo_location, yaml_file_location):
     """Attempts to build all specified files."""
     content_count = len(content_files)
     global current_count
@@ -35,7 +35,7 @@ def build_content(content_files, lang, repo_location, yaml_file_location):
         pool = concurrent.futures.ThreadPoolExecutor()
         futures = []
         for content_file in content_files:
-            futures.append(pool.submit(process_file, content_file, attributes, lang, content_count))
+            futures.append(pool.submit(process_file, content_file, attributes, lang, output_format, content_count))
 
         pool.shutdown(wait=True)
     except KeyboardInterrupt:
@@ -176,7 +176,7 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
     return attributes, lines
 
 
-def process_file(file_name, attributes, lang, content_count):
+def process_file(file_name, attributes, lang, output_format, content_count):
     """Coalesces files and builds them using an AsciiDoctor sub-process."""
     script_dir = os.path.dirname(os.path.realpath(__file__))
     global current_count
@@ -209,11 +209,10 @@ def process_file(file_name, attributes, lang, content_count):
     else:
         cmd = ('asciidoctor -a toc! -a imagesdir=images -T ' + script_dir + '/haml/ -E haml ' + file_name + '.tmp').split()
 
-    output_format = 'html'
-
-    if output_format = 'pdf':
-
-        cmd = ('asciidoctor-pdf -a pdf-themesdir=' + script_dir + '/templates/ -a pdf-theme=' script_dir + '/templates/red-hat.yml -a pdf-fontsdir=' + script_dir + '/fonts' + ' ' + file_name).split()
+    if output_format == 'pdf':
+        cmd = ('asciidoctor-pdf -a pdf-themesdir=' + script_dir + '/templates/ -a pdf-theme=' + script_dir + '/templates/red-hat.yml -a pdf-fontsdir=' + script_dir + '/fonts' + ' ' + file_name)
+        print(cmd)
+        cmd = cmd.split()
 
     # Build the content using AsciiDoctor
     output = subprocess.run(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
@@ -221,5 +220,10 @@ def process_file(file_name, attributes, lang, content_count):
     # Delete the temporary copy
     os.remove(file_name + '.tmp')
 
+    if output_format == 'html':
+        file_extension = '.html'
+    elif output_format == 'pdf':
+        file_extension = '.pdf'
+
     # Move the output file to the build directory
-    shutil.move(file_name.replace('.adoc', '.adoc.html'),'build/' + os.path.split(file_name)[1].replace('.adoc', '.html'))
+    shutil.move(file_name.replace('.adoc', file_extension),'build/' + os.path.split(file_name)[1].replace('.adoc', file_extension))
