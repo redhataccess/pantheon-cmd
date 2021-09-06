@@ -7,10 +7,10 @@ font:
       italic: RedHatDisplay-Italic.ttf
       bold_italic: RedHatDisplay-Medium.ttf
     Liberation Mono:
-      bold: /usr/share/fonts/liberation-mono/LiberationMono-Bold.ttf
-      bold_italic: /usr/share/fonts/liberation-mono/LiberationMono-BoldItalic.ttf
-      italic: /usr/share/fonts/liberation-mono/LiberationMono-Italic.ttf
-      normal: /usr/share/fonts/liberation-mono/LiberationMono-Regular.ttf
+      bold: LiberationMono-Bold.ttf
+      bold_italic: LiberationMono-BoldItalic.ttf
+      italic: LiberationMono-Italic.ttf
+      normal: LiberationMono-Regular.ttf
 page:
   background_color: FFFFFF
   layout: portrait
@@ -49,8 +49,6 @@ base:
   font_size_min: $base_font_size * 0.75
   font_style: normal
   border_color: EEEEEE
-  border_radius: 4
-  border_width: 0.5
 role:
   line-through:
     text_decoration: line-through
@@ -63,7 +61,7 @@ role:
   subtitle:
     font_color: 999999
     font_size: 0.8em
-    font_style: normal_italic
+    font_style: normal
 # FIXME vertical_rhythm is weird; we should think in terms of ems
 #vertical_rhythm: $base_line_height_length * 2 / 3
 # correct line height for Noto Serif metrics (comes with built-in line height)
@@ -84,7 +82,7 @@ key:
   background_color: F5F5F5
   border_color: CCCCCC
   border_offset: 2
-  border_radius: 2
+  border_radius: 0
   border_width: 0.5
   font_family: $literal_font_family
   separator: "\u202f+\u202f"
@@ -136,7 +134,7 @@ block:
 caption:
   align: left
   font_size: $base_font_size * 0.95
-  font_style: italic
+  font_style: bold
   # FIXME perhaps set line_height instead of / in addition to margins?
   margin_inside: $vertical_rhythm / 3
   margin_outside: 0
@@ -164,6 +162,12 @@ admonition:
   #    stroke_color: 111111
   #    size: 24
   label:
+    note:
+      font-color: #39a5dc
+    important:
+      font-color: #a30000 
+    warning:
+      font-color: #a30000
     text_transform: uppercase
     font_style: bold
 blockquote:
@@ -196,6 +200,7 @@ code:
   line_gap: 3.8
   background_color: #252525
   border_color: #252525
+  border_radius: 0
   border_width: 0.75
   callout_list:
     margin_top: -$block_margin_bottom / 2
@@ -207,9 +212,7 @@ conum:
   glyphs: circled
 example:
   border_color: $base_border_color
-  border_radius: $base_border_radius
-  border_width: 0.75
-  background_color: $page_background_color
+  background_color: #252525
   # FIXME reenable padding bottom once margin collapsing is implemented
   padding: [$vertical_rhythm, $horizontal_rhythm, 0, $horizontal_rhythm]
 image:
@@ -219,7 +222,7 @@ prose:
 sidebar:
   background_color: EEEEEE
   border_color: E1E1E1
-  border_radius: $base_border_radius
+  border_radius: 0
   border_width: $base_border_width
   # FIXME reenable padding bottom once margin collapsing is implemented
   padding: [$vertical_rhythm, $vertical_rhythm * 1.25, 0, $vertical_rhythm * 1.25]
@@ -247,8 +250,9 @@ table:
   background_color: $page_background_color
   border_color: DDDDDD
   border_width: $base_border_width
-  cell_padding: 3
+  cell_padding: 5
   head:
+    background-color: #f5f5f5
     font_style: bold
     border_bottom_width: $base_border_width * 2.5
   body:
