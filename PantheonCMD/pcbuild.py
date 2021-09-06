@@ -209,6 +209,12 @@ def process_file(file_name, attributes, lang, content_count):
     else:
         cmd = ('asciidoctor -a toc! -a imagesdir=images -T ' + script_dir + '/haml/ -E haml ' + file_name + '.tmp').split()
 
+    output_format = 'html'
+
+    if output_format = 'pdf':
+
+        cmd = ('asciidoctor-pdf -a pdf-themesdir=' + script_dir + '/templates/ -a pdf-theme=' script_dir + '/templates/red-hat.yml -a pdf-fontsdir=' + script_dir + '/fonts' + ' ' + file_name).split()
+
     # Build the content using AsciiDoctor
     output = subprocess.run(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
 

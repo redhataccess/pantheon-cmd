@@ -43,8 +43,10 @@ install -m 0755 pcyamlcheck.py $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/pcyamlcheck
 install -m 0755 pv2yml-generator.sh $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/pv2yml-generator.sh
 install -m 0755 pcmd $RPM_BUILD_ROOT%{_bindir}/pcmd
 
+cp -rf fonts $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/
 cp -rf haml $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/
 cp -rf resources $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/
+cp -rf templates $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/
 cp -rf locales $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/
 cp pcmd.1.gz $RPM_BUILD_ROOT%{_mandir}/man1/
 
