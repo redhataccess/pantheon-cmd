@@ -2,15 +2,15 @@ extends: default
 font:
   catalog:
     Red Hat:
-      normal: RedHatDisplay-Medium.ttf
-      bold: RedHatDisplay-Bold.ttf
-      italic: RedHatDisplay-Italic.ttf
-      bold_italic: RedHatDisplay-Medium.ttf
+      bold: Red_Hat_Display/RedHatDisplay-Bold.ttf
+      bold_italic: Red_Hat_Display/RedHatDisplay-Medium.ttf
+      italic: Red_Hat_Display/RedHatDisplay-Italic.ttf
+      normal: Red_Hat_Display/RedHatDisplay-Medium.ttf
     Liberation Mono:
-      bold: LiberationMono-Bold.ttf
-      bold_italic: LiberationMono-BoldItalic.ttf
-      italic: LiberationMono-Italic.ttf
-      normal: LiberationMono-Regular.ttf
+      bold: Liberation_Mono/LiberationMono-Bold.ttf
+      bold_italic: Liberation_Mono/LiberationMono-BoldItalic.ttf
+      italic: Liberation_Mono/LiberationMono-Italic.ttf
+      normal: Liberation_Mono/LiberationMono-Regular.ttf
 page:
   background_color: FFFFFF
   layout: portrait
@@ -112,8 +112,6 @@ heading:
   min_height_after: $base_line_height_length * 1.5
 title_page:
   align: right
-  logo: 
-    image: image:rhlogo.svg[]
   title:
     top: 55%
     font_size: $heading_h1_font_size
@@ -162,12 +160,6 @@ admonition:
   #    stroke_color: 111111
   #    size: 24
   label:
-    note:
-      font-color: #39a5dc
-    important:
-      font-color: #a30000 
-    warning:
-      font-color: #a30000
     text_transform: uppercase
     font_style: bold
 blockquote:

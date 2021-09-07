@@ -77,8 +77,8 @@ if __name__ == "__main__":
         if args.format:
             if args.format == 'pdf':
                 output_format = 'pdf'
-            else:
-                output_format = 'html'
+        else:
+            output_format = 'html'
 
         # Did a user specify a set of files? If so, only build those.
         if args.files:
