@@ -165,7 +165,8 @@ if __name__ == "__main__":
                     print('\t' + key)
 
                 print("\nTotal: ", str(len(missing_keys)))
-                sys.exit('\nPlease fix your pantheon2.yml to validte the files; exiting...')
+                print('\nPlease fix your pantheon2.yml to validte the files; exiting...')
+                sys.exit(2)
 
             if empty_values:
 
@@ -176,7 +177,8 @@ if __name__ == "__main__":
                     print('\t' + value)
 
                 print("\nTotal: ", str(len(empty_values)))
-                sys.exit('\nPlease fix your pantheon2.yml to validte the files; exiting...')
+                print('\nPlease fix your pantheon2.yml to validte the files; exiting...')
+                sys.exit(2)
 
             files_found = get_exist(pantheon_repo.get_content())
             modules_found = pantheon_repo.get_existing_content("modules")
@@ -187,7 +189,7 @@ if __name__ == "__main__":
             if yaml_validation.count != 0:
                 print("\nYour pantheon2.yml has the following errors:\n")
                 yaml_validation.print_report()
-                sys.exit()
+                sys.exit(2)
 
             exists = get_not_exist(pantheon_repo.get_content())
 
@@ -210,12 +212,14 @@ if __name__ == "__main__":
             if validate.count != 0:
                 print("\nYour pantheon2.yml contains the following files that did not pass validation:\n")
                 validate.print_report()
+                sys.exit(2)
             else:
                 print("All files passed validation.")
 
         else:
 
             print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")
+            sys.exit(1)
 
 
     # Action - validate files on a merge request

@@ -39,10 +39,12 @@ def get_yaml_syntax_errors(self):
             try:
                 yaml.safe_load(f)
             except yaml.YAMLError:
-                sys.exit("There's a syntax error in your pantheon2.yml file. Please fix it and try again.\nTo detect an error try running yaml lint on your pantheo2.yml file.")
+                print("There's a syntax error in your pantheon2.yml file. Please fix it and try again.\nTo detect an error try running yaml lint on your pantheo2.yml file.")
+                sys.exit(2)
 
     else:
-        sys.exit("Your pantheon2.yml file is empty; exiting...")
+        print("Your pantheon2.yml file is empty; exiting...")
+        sys.exit(2)
 
 
 def get_missing_or_empty_yaml_keys(self):
