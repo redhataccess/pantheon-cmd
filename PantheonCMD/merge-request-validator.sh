@@ -9,6 +9,14 @@ current_branch=$(git rev-parse --abbrev-ref HEAD)
 # find the changed files between master and current branch
 changed_files=$(git diff --diff-filter=ACM --name-only "$master_main"..."$current_branch" -- '*.adoc' ':!*master.adoc')
 
+# some error handlin for when the files are present on PR but not in local repo
+for file in $changed_files; do
+    if [ ! -f "$file" ]; then
+        echo "$file exist in the remote repository but is not present in your local repository. Please commit and push your local changes and try again."
+        exit 1
+    fi
+done
+
 # collect assemblies with prefix in the name
 prefix_assemblies=$(echo "$changed_files" | tr ' ' '\n' | grep -e '.*/\(assembly\).*\.adoc')
 
