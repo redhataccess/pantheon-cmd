@@ -40,10 +40,4 @@ Install the RPM and all Ruby gem dependencies.
    $ sudo gem install asciidoctor concurrent-ruby haml tilt
    ```
 
-The script is installed on your local machine.
-
-## Licenscing
-
-This script uses locale attributes files from the AsciiDoctor repository.
-
-For more information, see https://github.com/asciidoctor/asciidoctor/tree/master/data/locale
+Pantheon CMD is installed on your local machine.
