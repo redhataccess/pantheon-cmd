@@ -29,10 +29,8 @@ def build_content(content_files, lang, repo_location, yaml_file_location):
         if item == 'variants':
             attributes_file_location = repo_location + members[0]["path"]
             with open(attributes_file_location,'r') as attributes_file:
-                attributes = attributes_file.readlines()
+                attributes = parse_attributes(attributes_file.readlines())
             break
-
-    attributes = parse_attributes(attributes)
 
     try:
         pool = concurrent.futures.ThreadPoolExecutor()
@@ -156,7 +154,7 @@ def coalesce_document(main_file, attributes=None, depth=1, top_level=True):
             if top_level:
                 lines.insert(0,'\n\n')
                 for attribute in sorted(attributes.keys(),reverse=True):
-                    lines.insert(0,':' + attribute + ':' + attributes[attribute] + '\n')
+                    lines.insert(0,':' + attribute + ': ' + attributes[attribute] + '\n')
                 lines.insert(0,'// Global attributes\n')
 
     return lines
