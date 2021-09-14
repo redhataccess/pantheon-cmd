@@ -21,7 +21,7 @@ All additions and updates to the script are welcome.
 ## Packaging the Script
 After you update the manifest updater and test the changes, you can build an RPM-based package for the script so that it can be installed on systems that use *yum* or *dnf*.
 
-1. Install the `svn` and `rpmbuild` packages installed on your system:
+1. Install the `svn` and `rpmbuild` packages on your system:
    ```shell
    # on RHEL
    $ sudo yum install subversion
