@@ -38,7 +38,12 @@ After you update the manifest updater and test the changes, you can build an RPM
    $ sh make.sh 1.0
    ```
 
-## Installing the script
+## Installing Pantheon CMD
+
+Install Pantheon CMD on a local system.
+
+## Installing Pantheon CMD on RHEL and Fedora
+
 Install the RPM and all Ruby gem dependencies.
 
 1. Install the RPM:
@@ -53,6 +58,60 @@ Install the RPM and all Ruby gem dependencies.
 The script is installed on your local machine.
 The script provides the `pcmd` command.
 Enter `pcmd -h` in your terminal to view the basic usage instructions.
+
+## Installing Pantheon CMD on OSX
+
+Install the dependencies and copy the source files into your local binaries directory.
+
+1. Clone the repository:
+   ```
+   $ git clone 
+   ```
+2. Install Homebrew:
+   ```
+   # /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   ``` 
+3. Install package dependencies:
+   ```
+   $ brew install python3 ruby subversion 
+   ```
+4. Install ruby gem dependencies:
+   ```
+   # gem install asciidoctor concurrent-ruby haml tilt
+   ```
+5. Create resources directories:
+   ```
+   mkdir PantheonCMD/{haml,locales}
+   ```
+6. Get the HAML templates:
+   ```
+   $ svn checkout https://github.com/redhataccess/pantheon/trunk/pantheon-bundle/src/main/resources/apps/pantheon/templates/haml/html5 PantheonCMD/haml
+   ```
+7. Update styling references:
+   ```
+   $ sed -i '' 's/^-\ pantheonCssPath.*/-\ pantheonCssPath\ \=\ \"resources\/rhdocs.min.css\"/' PantheonCMD/haml/document.html.haml
+   $ sed -i '' 's/href\=\"https\:\/\/static\.redhat\.com\/libs\/redhat\/redhat-font\/2\/webfonts\/red-hat-font\.css/href\=\"resources\/red-hat-font.css/' PantheonCMD/haml/document.html.haml
+   ```
+7. Get the locales:
+   ```
+   $ svn checkout https://github.com/asciidoctor/asciidoctor/trunk/data/locale PantheonCMD/locales
+   ```
+8. Remove SVN directories:
+   ```
+   $ rm -rf PantheonCMD/{haml,locales}/.svn
+   ```
+9. Copy the source files to the local binaries directory:
+   ```
+   $cp -r PantheonCMD /usr/local/bin
+   ```
+10. Add an alias to `~/.zshrc`:
+   ```
+   alias pcmd="/usr/local/bin/python3 /usr/local/bin/PantheonCMD/pcmd.py $@"   
+   ```
+11. Source your `~/.zshrc` file:
+   ```
+   $ source ~/.zshrc
+   ```
 
 ## Licenscing
 
