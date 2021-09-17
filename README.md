@@ -101,17 +101,17 @@ Install the dependencies and copy the source files into your local binaries dire
    $ rm -rf PantheonCMD/{haml,locales}/.svn
    ```
 10. Copy the source files to the local binaries directory:
-   ```
-   $ cp -r PantheonCMD /usr/local/bin
-   ```
+    ```
+    $ cp -r PantheonCMD /usr/local/bin
+    ```
 11. Add an alias to `~/.zshrc`:
-   ```
-   alias pcmd="/usr/local/bin/python3 /usr/local/bin/PantheonCMD/pcmd.py $@"   
-   ```
+    ```
+    alias pcmd="/usr/local/bin/python3 /usr/local/bin/PantheonCMD/pcmd.py $@"   
+    ```
 12. Source your `~/.zshrc` file:
-   ```
-   $ source ~/.zshrc
-   ```
+    ```
+    $ source ~/.zshrc
+    ```
 
 ## Licenscing
 
