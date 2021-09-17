@@ -92,23 +92,23 @@ Install the dependencies and copy the source files into your local binaries dire
    $ sed -i '' 's/^-\ pantheonCssPath.*/-\ pantheonCssPath\ \=\ \"resources\/rhdocs.min.css\"/' PantheonCMD/haml/document.html.haml
    $ sed -i '' 's/href\=\"https\:\/\/static\.redhat\.com\/libs\/redhat\/redhat-font\/2\/webfonts\/red-hat-font\.css/href\=\"resources\/red-hat-font.css/' PantheonCMD/haml/document.html.haml
    ```
-7. Get the locales:
+8. Get the locales:
    ```
    $ svn checkout https://github.com/asciidoctor/asciidoctor/trunk/data/locale PantheonCMD/locales
    ```
-8. Remove SVN directories:
+9. Remove SVN directories:
    ```
    $ rm -rf PantheonCMD/{haml,locales}/.svn
    ```
-9. Copy the source files to the local binaries directory:
+10. Copy the source files to the local binaries directory:
    ```
-   $cp -r PantheonCMD /usr/local/bin
+   $ cp -r PantheonCMD /usr/local/bin
    ```
-10. Add an alias to `~/.zshrc`:
+11. Add an alias to `~/.zshrc`:
    ```
    alias pcmd="/usr/local/bin/python3 /usr/local/bin/PantheonCMD/pcmd.py $@"   
    ```
-11. Source your `~/.zshrc` file:
+12. Source your `~/.zshrc` file:
    ```
    $ source ~/.zshrc
    ```
