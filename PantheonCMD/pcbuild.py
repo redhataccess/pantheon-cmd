@@ -113,51 +113,68 @@ def resolve_attribute_tree(content, attributes):
     return content
 
 
-def coalesce_document(main_file, attributes=None, depth=1, top_level=True):
+def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
     """Combines the content from includes into a single, contiguous source file."""
     attributes = attributes or {}
+    comment_block = False
     lines = []
+    
+    # Create a copy of global attributes
+    if top_level:
+        attributes_global = attributes.copy()
 
     # Open the file, iterate over lines
     if os.path.exists(main_file):
         with open(main_file) as input_file:
             # Iterate over content
             for line in input_file:
-                # Process comments
-                if line.startswith('//'):
+                # Process comment block start and finish
+                if line.strip().startswith('////'):
+                    comment_block = True if not comment_block else False
+                    continue
+                # Process comment block continuation
+                elif comment_block:
+                    continue
+                # Process inline comments
+                elif line.strip().startswith('//'):
                     continue
                 # Process section depth
-                if line.strip().startswith('= '):
-                    lines.append(('=' * depth) + ' ' + line.split('= ')[1])
+                elif re.match(r'^=+ \S+', line.strip()):
+                    if depth > 0:
+                        lines.append(('=' * depth) + line.strip())
+                    else:
+                        lines.append(line.strip())
                 # Process includes - recusrive
-                elif line.startswith("include::"):
-                    include_depth = 1
+                elif line.strip().startswith("include::"):
+                    include_depth = 0
                     include_file = line.replace("include::", "").split("[")[0]
-                    include_options = line.split("[")[1].split("]")[0]
-                    if include_options.__contains__("="):
-                        include_depth += int(include_options.split("=")[1])
+                    include_options = line.split("[")[1].split("]")[0].split(',')
+                    for include_option in include_options:
+                        if include_option.__contains__("leveloffset=+"):
+                            include_depth += int(include_option.split("+")[1])
                     # Replace attributes in includes, if their values are defined
                     if re.match(r'^\{\S+\}.*', include_file):
-                        include_file = resolve_attribute_tree(include_file)
+                        include_file = resolve_attribute_tree(include_file, attributes)
                     include_filepath = os.path.join(os.path.dirname(main_file), include_file)
-                    include_lines = coalesce_document(include_filepath,attributes,include_depth,False)
+                    attributes, include_lines = coalesce_document(include_filepath, attributes, include_depth, False)
                     lines.extend(include_lines)
                 # Build dictionary of found attributes
                 elif re.match(r'^:\S+:.*', line):
                     attribute_name = line.split(":")[1].strip()
                     attribute_value = line.split(":")[2].strip()
-                    attributes[attribute_name] = attribute_value
+                    if attribute_name != 'context':
+                        attributes[attribute_name] = attribute_value
                     lines.append(line)
                 else:
                     lines.append(line)
             # Add global attribute definitions if main file
             if top_level:
                 lines.insert(0,'\n\n')
-                for attribute in sorted(attributes.keys(),reverse=True):
-                    lines.insert(0,':' + attribute + ': ' + attributes[attribute] + '\n')
+                for attribute in sorted(attributes_global.keys(),reverse=True):
+                    lines.insert(0,':' + attribute + ': ' + attributes_global[attribute] + '\n')
                 lines.insert(0,'// Global attributes\n')
 
-    return lines
+    return attributes, lines
 
 
 def process_file(file_name, attributes, lang, content_count):
@@ -176,9 +193,13 @@ def process_file(file_name, attributes, lang, content_count):
             if lang == 'ja-JP':
                 output_file.write('include::' + script_dir + '/locales/attributes-ja.adoc[]\n\n')
 
-        coalesced_content = ''.join(coalesce_document(file_name, attributes, 1, True))
+        # Coalesce document
+        coalesced_attributes, coalesced_content = coalesce_document(file_name, attributes, 0, True)
+
+        coalesced_content = ''.join(coalesced_content)
         coalesced_content = re.sub(r'\n\s*\n', '\n\n', coalesced_content)
 
+        # Standardize image references
         regex_images = 'image:(:?)(.*?)\/([a-zA-Z0-9_-]+)\.(.*?)\['
 
         output_file.write(re.sub(regex_images, r'image:\1\3.\4[', coalesced_content))
@@ -197,4 +218,3 @@ def process_file(file_name, attributes, lang, content_count):
 
     # Move the output file to the build directory
     shutil.move(file_name.replace('.adoc', '.adoc.html'),'build/' + os.path.split(file_name)[1].replace('.adoc', '.html'))
-
