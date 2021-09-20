@@ -32,6 +32,8 @@ def build_content(content_files, lang, repo_location, yaml_file_location):
                 attributes = parse_attributes(attributes_file.readlines())
             break
 
+    attributes = parse_attributes(attributes)
+
     try:
         pool = concurrent.futures.ThreadPoolExecutor()
         futures = []
