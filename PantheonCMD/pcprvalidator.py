@@ -6,21 +6,27 @@ from pcchecks import Regex
 
 
 def get_current_branch(path=None):
+    """Return the name of the current branch."""
     command = 'git rev-parse --abbrev-ref HEAD'.split()
     current_branch = subprocess.Popen(command, stdout=subprocess.PIPE, cwd=path).stdout.read()
+
     return current_branch.strip().decode('utf-8')
 
 
 def get_target_branch(path=None):
+    """Return the name of the target branch; master or main"""
+    # FIXME: won't work if the PR is opened against any other branch
     command = 'git rev-parse --abbrev-ref origin/HEAD'.split()
     target_branch = subprocess.Popen(command, stdout=subprocess.PIPE, cwd=path).stdout.read()
+
     return target_branch.strip().decode('utf-8')
 
 
 def get_changed_files(path=None):
+    """Returns a list of the files that werre change on the PR."""
     target_branch = get_target_branch()
     current_branch = get_current_branch()
-    out = []
+    cahnged_files = []
     buff = []
 
     command = ("git diff --diff-filter=ACM --name-only " + target_branch + "..." + current_branch + " -- '*.adoc' ':!*master.adoc'")
@@ -28,20 +34,22 @@ def get_changed_files(path=None):
     changed_files = process.communicate()[0].decode("utf-8")
 
     # converting the string into a list
+    # there's probably a better way to do it but oh well
     for item in changed_files:
         if item == '\n':
-            out.append(''.join(buff))
+            cahnged_files.append(''.join(buff))
             buff = []
         else:
             buff.append(item)
     else:
         if buff:
-            out.append(''.join(buff))
+            cahnged_files.append(''.join(buff))
 
-    return out
+    return cahnged_files
 
 
 def get_prefix_assemblies(files_found):
+    """Returns a sorted list of assemblies with a prefix."""
     prefix_assembly_files = []
 
     for file in files_found:
@@ -52,6 +60,7 @@ def get_prefix_assemblies(files_found):
 
 
 def get_prefix_modules(files_found):
+    """Returns a sorted list of modules with a prefix."""
     prefix_module_files = []
 
     for file in files_found:
@@ -62,6 +71,7 @@ def get_prefix_modules(files_found):
 
 
 def get_no_prefix_files(files_found):
+    """Returns a list of files that have no prefix."""
     no_prefix_files = []
 
     for file in files_found:
@@ -72,6 +82,7 @@ def get_no_prefix_files(files_found):
 
 
 def get_no_prefefix_file_type(no_prefix_files):
+    """Returns a list of files determined to be assemblies or modules, and undetermined files."""
     no_prefix_module_type = []
     no_prefix_assembly_type = []
     undetermined_file_type = []
@@ -98,18 +109,21 @@ def get_no_prefefix_file_type(no_prefix_files):
 
 
 def get_no_prefix_modules(no_prefix_files):
+    """Returns a sorted list of no prefix modules."""
     no_prefix_module_type, no_prefix_assembly_type, undetermined_file_type = get_no_prefefix_file_type(no_prefix_files)
 
     return(sorted(no_prefix_module_type, key=str.lower))
 
 
 def get_no_prefix_assemblies(no_prefix_files):
+    """Returns a sorted list of no prefix assemblies."""
     no_prefix_module_type, no_prefix_assembly_type, undetermined_file_type = get_no_prefefix_file_type(no_prefix_files)
 
     return(sorted(no_prefix_assembly_type, key=str.lower))
 
 
 def get_all_modules(files_found, no_prefix_files):
+    """Returns a list of all modules."""
     prefix_module_files = get_prefix_modules(files_found)
     no_prefix_module_type = get_no_prefix_modules(no_prefix_files)
 
@@ -117,6 +131,7 @@ def get_all_modules(files_found, no_prefix_files):
 
 
 def get_all_assemblies(files_found, no_prefix_files):
+    """Returns a list of all assemblies."""
     prefix_assemblies = get_prefix_assemblies(files_found)
     no_prefix_assembly_type = get_no_prefix_assemblies(no_prefix_files)
 
@@ -124,6 +139,7 @@ def get_all_assemblies(files_found, no_prefix_files):
 
 
 def get_undetermined_files(no_prefix_files):
+    """Returns a list of undetermined files."""
     no_prefix_module_type, no_prefix_assembly_type, undetermined_file_type = get_no_prefefix_file_type(no_prefix_files)
 
     return(sorted(undetermined_file_type, key=str.lower))
