@@ -38,8 +38,6 @@ def validation(files_found, modules_found, assemblies_found):
             original = file.read()
             stripped = Regex.MULTI_LINE_COMMENT.sub('', original)
             stripped = Regex.SINGLE_LINE_COMMENT.sub('', stripped)
-            # FIXME: figure out a better way to exclude pseudo vanilla xrefs
-            #stripped = Regex.PSEUDO_VANILLA_XREF.sub('', stripped)
             stripped = Regex.CODE_BLOCK_DASHES.sub('', stripped)
             stripped = Regex.CODE_BLOCK_DOTS.sub('', stripped)
             stripped = Regex.INTERNAL_IFDEF.sub('', stripped)
@@ -50,8 +48,6 @@ def validation(files_found, modules_found, assemblies_found):
             original = file.read()
             stripped = Regex.MULTI_LINE_COMMENT.sub('', original)
             stripped = Regex.SINGLE_LINE_COMMENT.sub('', stripped)
-            # FIXME: figure out a better way to exclude pseudo vanilla xrefs
-            #stripped = Regex.PSEUDO_VANILLA_XREF.sub('', stripped)
             stripped = Regex.CODE_BLOCK_DASHES.sub('', stripped)
             stripped = Regex.CODE_BLOCK_DOTS.sub('', stripped)
             stripped = Regex.INTERNAL_IFDEF.sub('', stripped)
@@ -63,8 +59,6 @@ def validation(files_found, modules_found, assemblies_found):
             original = file.read()
             stripped = Regex.MULTI_LINE_COMMENT.sub('', original)
             stripped = Regex.SINGLE_LINE_COMMENT.sub('', stripped)
-            # FIXME: figure out a better way to exclude pseudo vanilla xrefs
-            #stripped = Regex.PSEUDO_VANILLA_XREF.sub('', stripped)
             stripped = Regex.CODE_BLOCK_DASHES.sub('', stripped)
             stripped = Regex.CODE_BLOCK_DOTS.sub('', stripped)
             stripped = Regex.INTERNAL_IFDEF.sub('', stripped)

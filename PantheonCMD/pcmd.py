@@ -11,6 +11,7 @@ from pcutil import PantheonRepo, get_not_exist, get_exist, is_pantheon_repo
 from pcvalidator import validation
 from pcyamlcheck import yaml_validator, get_missing_keys, get_empty_values, get_yaml_syntax_errors
 from subprocess import call
+from pcprvalidator import get_changed_files, get_all_modules, get_all_assemblies, get_undetermined_files, get_no_prefix_files
 
 
 def print_header():
@@ -224,5 +225,36 @@ if __name__ == "__main__":
 
     # Action - validate files on a merge request
     elif args.command == 'validate-merge-request':
-        path_to_script = os.path.dirname(os.path.realpath(__file__))
-        call("sh " + path_to_script + "/merge-request-validator.sh", shell=True)
+        files_not_found = get_not_exist(get_changed_files())
+        files_found = get_exist(get_changed_files())
+        modules_found = get_all_modules(get_exist(get_changed_files()), get_no_prefix_files(get_exist(get_changed_files())))
+        assemblies_found = get_all_assemblies(get_exist(get_changed_files()), get_no_prefix_files(get_exist(get_changed_files())))
+        undetermined_file_type = get_undetermined_files(get_no_prefix_files(get_exist(get_changed_files())))
+
+        if files_not_found:
+
+            print("\nYour Merge Request contains the following files that do not exist in your local repository:\n")
+
+            for file in files_not_found:
+
+                print('\t' + file)
+
+            print("\nTotal: ", str(len(files_not_found)))
+
+        if undetermined_file_type:
+            print("\nYour Merge Request contains the following files that can not be classifiyed as modules or assemblies:\n")
+
+            for file in undetermined_file_type:
+
+                print('\t' + file)
+
+            print("\nTotal: ", str(len(undetermined_file_type)))
+
+        validate = validation(files_found, modules_found, assemblies_found)
+
+        if validate.count != 0:
+            print("\nYour Merge Request contains the following files that did not pass validation:\n")
+            validate.print_report()
+            sys.exit(2)
+        else:
+            print("All files passed validation.")

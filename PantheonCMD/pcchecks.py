@@ -15,6 +15,10 @@ class Tags:
 class Regex:
     """Define regular expresiions for the checks."""
 
+    INCLUDE = re.compile(r'include::.*\]\n')
+    MODULE_TYPE = re.compile(r':_module-type: (PROCEDURE|CONCEPT|REFERENCE)')
+    prefix_assemblies = re.compile(r'.*\/assembly.*\.adoc')
+    prefix_modules = re.compile(r'.*\/con.*\.adoc|.*\/proc.*\.adoc|.*\/ref.*\.adoc')
     VANILLA_XREF = re.compile(r'<<.*>>')
     # PSEUDO_VANILLA_XREF = re.compile(r'<<.* .*>>')
     MULTI_LINE_COMMENT = re.compile(r'(/{4,})(.*\n)*?(/{4,})')
