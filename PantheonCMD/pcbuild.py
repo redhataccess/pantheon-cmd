@@ -29,9 +29,8 @@ def build_content(content_files, lang, repo_location, yaml_file_location):
         if item == 'variants':
             attributes_file_location = repo_location + members[0]["path"]
             with open(attributes_file_location,'r') as attributes_file:
-                attributes = attributes_file.read()
+                attributes = parse_attributes(attributes_file.readlines())
             break
-
     try:
         pool = concurrent.futures.ThreadPoolExecutor()
         futures = []
@@ -51,6 +50,20 @@ def build_content(content_files, lang, repo_location, yaml_file_location):
     print()
 
     return True
+
+
+def parse_attributes(attributes):
+    """Read an attributes file and parse values into a key:value dictionary."""
+
+    final_attributes = {}
+
+    for line in attributes:
+        if re.match(r'^:\S+:.*', line):
+            attribute_name = line.split(":")[1].strip()
+            attribute_value = line.split(":")[2].strip()
+            final_attributes[attribute_name] = attribute_value
+
+    return final_attributes
 
 
 def copy_resources(resources):
@@ -82,37 +95,85 @@ def prepare_build_directory():
     os.makedirs('build/images')
 
 
-def coalesce_document(main_file, attributes=None):
+def resolve_attribute_tree(content, attributes):
+    """Attempt to recursively resolve AsciiDoc attributes into a string."""
+
+    continue_processing = True
+
+    while continue_processing:
+        if re.match(r'.*\{\S+\}.*', content):
+            for attribute in re.search(r'\{(.*?)\}', content).groups():
+                if attribute in attributes.keys():
+                    content = content.replace('{' + attribute + '}',attributes[attribute])
+                else:
+                    continue_processing = False
+        else:
+            continue_processing = False
+    return content
+
+
+def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
     """Combines the content from includes into a single, contiguous source file."""
     attributes = attributes or {}
+    comment_block = False
     lines = []
+    
+    # Create a copy of global attributes
+    if top_level:
+        attributes_global = attributes.copy()
 
     # Open the file, iterate over lines
     if os.path.exists(main_file):
         with open(main_file) as input_file:
+            # Iterate over content
             for line in input_file:
-                # Process comments
-                if line.startswith('//'):
+                # Process comment block start and finish
+                if line.strip().startswith('////'):
+                    comment_block = True if not comment_block else False
                     continue
+                # Process comment block continuation
+                elif comment_block:
+                    continue
+                # Process inline comments
+                elif line.strip().startswith('//'):
+                    continue
+                # Process section depth
+                elif re.match(r'^=+ \S+', line.strip()):
+                    if depth > 0:
+                        lines.append(('=' * depth) + line.strip())
+                    else:
+                        lines.append(line.strip())
                 # Process includes - recusrive
-                if line.startswith("include::"):
+                elif line.strip().startswith("include::"):
+                    include_depth = 0
                     include_file = line.replace("include::", "").split("[")[0]
-                    # Replace attributes in includes, if already detected
+                    include_options = line.split("[")[1].split("]")[0].split(',')
+                    for include_option in include_options:
+                        if include_option.__contains__("leveloffset=+"):
+                            include_depth += int(include_option.split("+")[1])
+                    # Replace attributes in includes, if their values are defined
                     if re.match(r'^\{\S+\}.*', include_file):
-                        attribute = re.search(r'\{(.*?)\}',include_file).group(1)
-                        if attribute in attributes.keys():
-                            include_file = include_file.replace('{' + attribute + '}',attributes[attribute])
+                        include_file = resolve_attribute_tree(include_file, attributes)
                     include_filepath = os.path.join(os.path.dirname(main_file), include_file)
-                    lines.extend(coalesce_document(include_filepath,attributes))
+                    attributes, include_lines = coalesce_document(include_filepath, attributes, include_depth, False)
+                    lines.extend(include_lines)
                 # Build dictionary of found attributes
                 elif re.match(r'^:\S+:.*', line):
                     attribute_name = line.split(":")[1].strip()
                     attribute_value = line.split(":")[2].strip()
-                    attributes[attribute_name] = attribute_value
+                    if attribute_name != 'context':
+                        attributes[attribute_name] = attribute_value
                     lines.append(line)
                 else:
                     lines.append(line)
-    return lines
+            # Add global attribute definitions if main file
+            if top_level:
+                lines.insert(0,'\n\n')
+                for attribute in sorted(attributes_global.keys(),reverse=True):
+                    lines.insert(0,':' + attribute + ': ' + attributes_global[attribute] + '\n')
+                lines.insert(0,'// Global attributes\n')
+
+    return attributes, lines
 
 
 def process_file(file_name, attributes, lang, content_count):
@@ -127,14 +188,17 @@ def process_file(file_name, attributes, lang, content_count):
 
     # Create a temporary copy of the file, inject the attributes, and write content
     with open(file_name + '.tmp', 'w') as output_file:
-        output_file.write(attributes + '\n\n')
         if lang:
             if lang == 'ja-JP':
                 output_file.write('include::' + script_dir + '/locales/attributes-ja.adoc[]\n\n')
 
-        coalesced_content = ''.join(coalesce_document(file_name))
+        # Coalesce document
+        coalesced_attributes, coalesced_content = coalesce_document(file_name, attributes, 0, True)
+
+        coalesced_content = ''.join(coalesced_content)
         coalesced_content = re.sub(r'\n\s*\n', '\n\n', coalesced_content)
 
+        # Standardize image references
         regex_images = 'image:(:?)(.*?)\/([a-zA-Z0-9_-]+)\.(.*?)\['
 
         output_file.write(re.sub(regex_images, r'image:\1\3.\4[', coalesced_content))
