@@ -49,7 +49,7 @@ def get_prefix_assemblies(files_found):
     prefix_assembly_files = []
 
     for file in files_found:
-        if re.findall(Regex.prefix_assemblies, file):
+        if re.findall(Regex.PREFIX_ASSEMBLIES, file):
             prefix_assembly_files.append(file)
 
     return(sorted(prefix_assembly_files, key=str.lower))
@@ -60,7 +60,7 @@ def get_prefix_modules(files_found):
     prefix_module_files = []
 
     for file in files_found:
-        if re.findall(Regex.prefix_modules, file):
+        if re.findall(Regex.PREFIX_MODULES, file):
             prefix_module_files.append(file)
 
     return(sorted(prefix_module_files, key=str.lower))
@@ -71,7 +71,7 @@ def get_no_prefix_files(files_found):
     no_prefix_files = []
 
     for file in files_found:
-        if not re.findall(Regex.prefix_assemblies, file) and not re.findall(Regex.prefix_modules, file):
+        if not re.findall(Regex.PREFIX_ASSEMBLIES, file) and not re.findall(Regex.PREFIX_MODULES, file):
             no_prefix_files.append(file)
 
     return no_prefix_files
