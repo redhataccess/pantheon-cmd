@@ -27,21 +27,9 @@ def get_changed_files():
 
     command = ("git diff --diff-filter=ACM --name-only " + target_branch + "..." + current_branch + " -- '*.adoc' ':!*master.adoc'")
     process = subprocess.run(command, stdout=subprocess.PIPE, shell=True).stdout
-    changed_files = process.strip().decode('utf-8')
+    changed_files = process.strip().decode('utf-8').split('\n')
 
-    # converting the string into a list
-    # there's probably a better way to do it but oh well
-    for item in changed_files:
-        if item == '\n':
-            out_files.append(''.join(buff))
-            buff = []
-        else:
-            buff.append(item)
-    else:
-        if buff:
-            out_files.append(''.join(buff))
-
-    return out_files
+    return changed_files
 
 
 def get_prefix_assemblies(files_found):
