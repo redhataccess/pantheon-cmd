@@ -10,38 +10,38 @@ from pcchecks import Regex
 current_branch = Repository('.').head.shorthand
 
 
-def get_target_branch(path=None):
+def get_target_branch():
     """Return the name of the target branch; master or main"""
     # FIXME: won't work if the PR is opened against any other branch
     command = 'git rev-parse --abbrev-ref origin/HEAD'.split()
-    target_branch = subprocess.Popen(command, stdout=subprocess.PIPE, cwd=path).stdout.read()
+    target_branch = subprocess.run(command, stdout=subprocess.PIPE).stdout
 
     return target_branch.strip().decode('utf-8')
 
 
-def get_changed_files(path=None):
+def get_changed_files():
     """Return a list of the files that werre change on the PR."""
     target_branch = get_target_branch()
-    cahnged_files = []
+    out_files = []
     buff = []
 
     command = ("git diff --diff-filter=ACM --name-only " + target_branch + "..." + current_branch + " -- '*.adoc' ':!*master.adoc'")
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=None, shell=True)
-    changed_files = process.communicate()[0].decode("utf-8")
+    process = subprocess.run(command, stdout=subprocess.PIPE, shell=True).stdout
+    changed_files = process.strip().decode('utf-8')
 
     # converting the string into a list
     # there's probably a better way to do it but oh well
     for item in changed_files:
         if item == '\n':
-            cahnged_files.append(''.join(buff))
+            out_files.append(''.join(buff))
             buff = []
         else:
             buff.append(item)
     else:
         if buff:
-            cahnged_files.append(''.join(buff))
+            out_files.append(''.join(buff))
 
-    return cahnged_files
+    return out_files
 
 
 def get_prefix_assemblies(files_found):
