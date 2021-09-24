@@ -225,11 +225,13 @@ if __name__ == "__main__":
 
     # Action - validate files on a merge request
     elif args.command == 'validate-merge-request':
-        files_not_found = get_not_exist(get_changed_files())
-        files_found = get_exist(get_changed_files())
-        modules_found = get_all_modules(get_exist(get_changed_files()), get_no_prefix_files(get_exist(get_changed_files())))
-        assemblies_found = get_all_assemblies(get_exist(get_changed_files()), get_no_prefix_files(get_exist(get_changed_files())))
-        undetermined_file_type = get_undetermined_files(get_no_prefix_files(get_exist(get_changed_files())))
+        changed_files = get_changed_files()
+        files_not_found = get_not_exist(changed_files)
+        files_found = get_exist(changed_files)
+        no_prefix_files = get_no_prefix_files(files_found)
+        modules_found = get_all_modules(files_found, no_prefix_files)
+        assemblies_found = get_all_assemblies(files_found, no_prefix_files)
+        undetermined_file_type = get_undetermined_files(no_prefix_files)
 
         if files_not_found:
 
@@ -242,7 +244,7 @@ if __name__ == "__main__":
             print("\nTotal: ", str(len(files_not_found)))
 
         if undetermined_file_type:
-            print("\nYour Merge Request contains the following files that can not be classifiyed as modules or assemblies:\n")
+            print("\nYour Merge Request contains the following files that can not be classified as modules or assemblies:\n")
 
             for file in undetermined_file_type:
 
