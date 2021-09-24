@@ -22,8 +22,6 @@ def get_target_branch():
 def get_changed_files():
     """Return a list of the files that werre change on the PR."""
     target_branch = get_target_branch()
-    out_files = []
-    buff = []
 
     command = ("git diff --diff-filter=ACM --name-only " + target_branch + "..." + current_branch + " -- '*.adoc' ':!*master.adoc'")
     process = subprocess.run(command, stdout=subprocess.PIPE, shell=True).stdout
