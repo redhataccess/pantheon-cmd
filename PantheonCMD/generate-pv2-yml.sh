@@ -7,9 +7,9 @@ find_images_dir=$(find . -type d -name "images")
 
 #if images dir is detected record, otherwise create a placeholder
 if [ ! -z "$find_images_dir" ]; then
-    images_dir=$(for i in $find_images_dir; do echo "  - ${i/\.\/}/*.png"; done)
+    images_dir=$(for i in $find_images_dir; do echo "  - ${i/\.\/}/*.png" && echo "  - ${i/\.\/}/*.svg"; done)
 else
-    images_dir=$(echo '  - PATH/TO/YOUR/IMAGES/DIRECTORY/*.png')
+    images_dir=$(printf '  - PATH/TO/YOUR/IMAGES/DIRECTORY/*.png\n  - PATH/TO/YOUR/IMAGES/DIRECTORY/*.svg')
 fi
 
 #define the template
