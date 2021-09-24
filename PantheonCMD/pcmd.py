@@ -31,8 +31,8 @@ def parse_args():
     # Main subparsers
     subparsers = parser.add_subparsers(dest='command')
 
-    # 'Compile' command
-    parser_a = subparsers.add_parser('compile', help='Build a preview of content.')
+    # 'Preview' command
+    parser_a = subparsers.add_parser('preview', help='Build a preview of content.')
     parser_a.add_argument('--files', help='The files to target.')
     parser_a.add_argument('--lang', help='The language to build. For example, ja-JP.')
 
@@ -72,8 +72,8 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # Else parse actions
-    # Action - compile
-    if args.command == 'compile':
+    # Action - preview
+    if args.command == 'preview':
         # Did a user specify a set of files? If so, only build those.
         if args.files:
             # Handle different interpretations of directories
