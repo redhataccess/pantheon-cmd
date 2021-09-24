@@ -10,6 +10,8 @@ class Tags:
     ADD_RES = '[role="_additional-resources"]'
     EXPERIMENTAL = ':experimental:'
     LVLOFFSET = ':leveloffset:'
+    ICONS = ':icons:'
+    TOC = ':toc:'
 
 
 class Regex:
@@ -19,7 +21,6 @@ class Regex:
     MODULE_TYPE = re.compile(r':_module-type: (PROCEDURE|CONCEPT|REFERENCE)')
     PREFIX_ASSEMBLIES = re.compile(r'.*\/assembly.*\.adoc')
     PREFIX_MODULES = re.compile(r'.*\/con.*\.adoc|.*\/proc.*\.adoc|.*\/ref.*\.adoc')
-    VANILLA_XREF = re.compile(r'<<.*>>')
     # should exclude pseudo vanilla like <<some content>>
     VANILLA_XREF = re.compile(r'<<[^\s]*>>')
     MULTI_LINE_COMMENT = re.compile(r'(/{4,})(.*\n)*?(/{4,})')
@@ -48,6 +49,18 @@ class Regex:
     COMMENT_AFTER_ADD_RES_TAG = re.compile(r'\[role="_additional-resources"]\n(?=\//|(/{4,})(.*\n)*?(/{4,}))')
     EMPTY_LINE_AFTER_ADD_RES_HEADER = re.compile(r'== Additional resources\s\n|\.Additional resources\s\n', re.IGNORECASE)
     COMMENT_AFTER_ADD_RES_HEADER = re.compile(r'\.Additional resources\s(?=\//|(/{4,})(.*\n)*?(/{4,}))|== Additional resources\s(?=\//|(/{4,})(.*\n)*?(/{4,}))', re.IGNORECASE)
+
+
+def icons_check(stripped_file):
+    """Check if the file contains icons attribute."""
+    if re.findall(Tags.ICONS, stripped_file):
+        return True
+
+
+def toc_check(stripped_file):
+    """Check if the file contains toc attribute."""
+    if re.findall(Tags.TOC, stripped_file):
+        return True
 
 
 def vanilla_xref_check(stripped_file):
@@ -218,6 +231,12 @@ def checks(report, stripped_file, original_file, file_path):
 
     if vanilla_xref_check(stripped_file):
         report.create_report('vanilla xrefs', file_path)
+
+    if icons_check(stripped_file):
+        report.create_report('icons attribute', file_path)
+
+    if toc_check(stripped_file):
+        report.create_report('toc attribute', file_path)
 
     if inline_anchor_check(stripped_file):
         report.create_report('in-line anchors', file_path)
