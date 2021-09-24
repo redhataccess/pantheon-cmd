@@ -10,20 +10,10 @@ from pcchecks import Regex
 current_branch = Repository('.').head.shorthand
 
 
-def get_target_branch():
-    """Return the name of the target branch; master or main"""
-    # FIXME: won't work if the PR is opened against any other branch
-    command = 'git rev-parse --abbrev-ref origin/HEAD'.split()
-    target_branch = subprocess.run(command, stdout=subprocess.PIPE).stdout
-
-    return target_branch.strip().decode('utf-8')
-
-
 def get_changed_files():
     """Return a list of the files that werre change on the PR."""
-    target_branch = get_target_branch()
 
-    command = ("git diff --diff-filter=ACM --name-only " + target_branch + "..." + current_branch + " -- '*.adoc' ':!*master.adoc'")
+    command = ("git diff --diff-filter=ACM --name-only origin/HEAD..." + current_branch + " -- '*.adoc' ':!*master.adoc'")
     process = subprocess.run(command, stdout=subprocess.PIPE, shell=True).stdout
     changed_files = process.strip().decode('utf-8').split('\n')
 
