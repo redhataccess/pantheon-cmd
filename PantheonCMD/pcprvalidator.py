@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import subprocess
 from pygit2 import Repository
 import os
 import sys
@@ -8,22 +9,17 @@ import re
 from pcchecks import Regex
 
 
-# get the name of the current branch
-if os.path.exists('.git/'):
-    if len(os.listdir('.git/refs/heads/') ) == 0:
-        print('Not the root of the git repository; existing...')
-        sys.exit(1)
-    else:
-        current_branch = Repository('.').head.shorthand
-else:
-    print('Not the root of the git repository; existing...')
+if subprocess.call(["git", "branch"], stderr=subprocess.STDOUT, stdout=open(os.devnull, 'w')) != 0:
+    print('Not a git repository; existing...')
     sys.exit(1)
+else:
+    current_branch = Repository('.').head.shorthand
 
 
 def get_changed_files():
     """Return a list of the files that werre change on the PR."""
 
-    command = ("git diff --diff-filter=ACM --name-only origin/HEAD..." + current_branch + " -- '*.adoc' ':!*master.adoc'")
+    command = ("git diff --diff-filter=ACM --name-only origin/HEAD..." + current_branch + " -- ':!*master.adoc' | xargs -I '{}' realpath --relative-to=. $(git rev-parse --show-toplevel)/'{}' | grep '.*\.adoc'")
     process = subprocess.run(command, stdout=subprocess.PIPE, shell=True).stdout
     changed_files = process.strip().decode('utf-8').split('\n')
 
