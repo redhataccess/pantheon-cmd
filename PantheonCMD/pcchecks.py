@@ -51,16 +51,16 @@ class Regex:
     COMMENT_AFTER_ADD_RES_HEADER = re.compile(r'\.Additional resources\s(?=\//|(/{4,})(.*\n)*?(/{4,}))|== Additional resources\s(?=\//|(/{4,})(.*\n)*?(/{4,}))', re.IGNORECASE)
 
 
-def icons_check(stripped_file):
+def icons_check(report, stripped_file, file_path):
     """Check if the file contains icons attribute."""
     if re.findall(Tags.ICONS, stripped_file):
-        return True
+        report.create_report('icons attribute', file_path)
 
 
-def toc_check(stripped_file):
+def toc_check(report, stripped_file, file_path):
     """Check if the file contains toc attribute."""
     if re.findall(Tags.TOC, stripped_file):
-        return True
+        report.create_report('toc attribute', file_path)
 
 
 def vanilla_xref_check(stripped_file):
@@ -231,12 +231,6 @@ def checks(report, stripped_file, original_file, file_path):
 
     if vanilla_xref_check(stripped_file):
         report.create_report('vanilla xrefs', file_path)
-
-    if icons_check(stripped_file):
-        report.create_report('icons attribute', file_path)
-
-    if toc_check(stripped_file):
-        report.create_report('toc attribute', file_path)
 
     if inline_anchor_check(stripped_file):
         report.create_report('in-line anchors', file_path)

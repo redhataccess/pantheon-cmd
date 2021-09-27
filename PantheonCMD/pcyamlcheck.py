@@ -4,6 +4,8 @@ import os
 import sys
 import glob
 import yaml
+from pcchecks import Regex, icons_check, toc_check
+from pcvalidator import Report
 
 
 class Printing():
@@ -105,6 +107,7 @@ def get_missing_variant_keys(report, yaml_file, required_values):
     varriant_values_none = []
     cannonical_is_not_true = []
     path_does_not_exist = []
+    path_exists = []
     missing_value = []
 
     for variant_values in yaml_file['variants']:
@@ -123,8 +126,14 @@ def get_missing_variant_keys(report, yaml_file, required_values):
         if variant_values['path'] != None:
             if not os.path.exists(variant_values['path']):
                 path_does_not_exist.append(variant_values['path'])
+            else:
+                path_exists.append(variant_values['path'])
         if path_does_not_exist:
             report.create_report('files or directories do not exist in your repository', path_does_not_exist)
+
+        if path_exists:
+            return path_exists
+
 
     false_dir = []
     empty_dir = []
@@ -145,9 +154,17 @@ def get_missing_variant_keys(report, yaml_file, required_values):
         report.create_report('directory is empty', sorted(empty_dir, key=str.lower))
 
 
+def get_attribute_file_path(report, yaml_file, required_values):
+    """Record the attribiutes file."""
+    path_exists = get_missing_variant_keys(report, yaml_file, required_values)
+
+    return path_exists
+
+
 def yaml_validator(self):
-    """Validates variant yaml keys."""
-    report = Printing()
+    """Validates variant yaml keys and checks the attributes file."""
+    prints = Printing()
+    report = Report()
 
     with open(self.yaml_file_location, 'r') as f:
         data = yaml.safe_load(f)
@@ -155,5 +172,33 @@ def yaml_validator(self):
         required_variant_keys = (['name', 'path', 'canonical'])
 
         get_missing_variant_keys(report, data, required_variant_keys)
+
+        attribute_file = get_attribute_file_path(report, data, required_variant_keys)
+
+        for path in attribute_file:
+            with open(path, 'r') as file:
+                original = file.read()
+                stripped = Regex.MULTI_LINE_COMMENT.sub('', original)
+                stripped = Regex.SINGLE_LINE_COMMENT.sub('', stripped)
+                stripped = Regex.CODE_BLOCK_DASHES.sub('', stripped)
+                stripped = Regex.CODE_BLOCK_DOTS.sub('', stripped)
+                stripped = Regex.INTERNAL_IFDEF.sub('', stripped)
+
+                icons_check(report, stripped, path)
+                toc_check(report, stripped, path)
+
+    return prints, report
+
+
+def get_yaml_validation_results(self):
+    """Get report for yaml validation."""
+    prints, report = yaml_validator(self)
+
+    return prints
+
+
+def get_attribute_file_validation_results(self):
+    """Get report for attributes file validation."""
+    prints, report = yaml_validator(self)
 
     return report

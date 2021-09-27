@@ -9,7 +9,7 @@ import sys
 
 from pcutil import PantheonRepo, get_not_exist, get_exist, is_pantheon_repo
 from pcvalidator import validation
-from pcyamlcheck import yaml_validator, get_missing_keys, get_empty_values, get_yaml_syntax_errors
+from pcyamlcheck import get_yaml_validation_results, get_missing_keys, get_empty_values, get_yaml_syntax_errors, get_attribute_file_validation_results
 from subprocess import call
 from pcprvalidator import get_changed_files, get_all_modules, get_all_assemblies, get_undetermined_files, get_no_prefix_files
 
@@ -212,12 +212,18 @@ if __name__ == "__main__":
                 modules_found = pantheon_repo.get_existing_content("modules")
                 assemblies_found = pantheon_repo.get_existing_content("assemblies")
 
-                yaml_validation = yaml_validator(pantheon_repo)
+                yaml_validation = get_yaml_validation_results(pantheon_repo)
 
                 if yaml_validation.count != 0:
                     print("\nYour pantheon2.yml has the following errors:\n")
                     yaml_validation.print_report()
                     sys.exit(2)
+
+                attribute_file_validation = get_attribute_file_validation_results(pantheon_repo)
+
+                if attribute_file_validation.count != 0:
+                    print("\nYour attributes file has the following errors:\n")
+                    attribute_file_validation.print_report()
 
                 exists = get_not_exist(pantheon_repo.get_content())
 
