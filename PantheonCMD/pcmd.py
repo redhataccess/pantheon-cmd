@@ -101,6 +101,7 @@ if __name__ == "__main__":
                 sys.exit(2)
             else:
                 print("All files passed validation.")
+                sys.exit(0)
         else:
 
             pantheon_repo = PantheonRepo(repo_location)

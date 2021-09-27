@@ -1,13 +1,23 @@
 #!/usr/bin/python3
 
 from pygit2 import Repository
+import os
+import sys
 import subprocess
 import re
 from pcchecks import Regex
 
 
 # get the name of the current branch
-current_branch = Repository('.').head.shorthand
+if os.path.exists('.git/'):
+    if len(os.listdir('.git/refs/heads/') ) == 0:
+        print('Not the root of the git repository; existing...')
+        sys.exit(1)
+    else:
+        current_branch = Repository('.').head.shorthand
+else:
+    print('Not the root of the git repository; existing...')
+    sys.exit(1)
 
 
 def get_changed_files():
