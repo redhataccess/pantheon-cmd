@@ -64,93 +64,11 @@ if __name__ == "__main__":
 
     repo_location = is_pantheon_repo()
 
-    # Exit if not a Pantheon V2 repository
-    if repo_location:
-        # Construct a PantheonRepo instance
-        pantheon_repo = PantheonRepo(repo_location)
-    else:
-        print("Not a Pantheon V2 repository; exiting...")
-        sys.exit(1)
-
-    # Else parse actions
-    # Action - preview
-    if args.command == 'preview':
-
-        output_format = 'html'
-
-        if args.format:
-            if args.format == 'pdf':
-                output_format = 'pdf'
-
-        # Did a user specify a set of files? If so, only build those.
-        if args.files:
-            # Handle different interpretations of directories
-            if os.path.isdir(args.files):
-                if args.files.endswith('/'):
-                    args.files += '*.adoc'
-                else:
-                    args.files += '/*.adoc'
-
-            # Get set of files
-            content_subset = pcutil.get_content_subset(args.files)
-
-            # Ensure at least one valid file exists in the set
-            if not content_subset:
-                print("Couldn't find any valid files; exiting...\n")
-                sys.exit(1)
-            else:
-                pcbuild.prepare_build_directory()
-                pcbuild.copy_resources(pantheon_repo.get_existing_content("resources"))
-                pcbuild.build_content(content_subset, args.lang, output_format, pantheon_repo.repo_location, pantheon_repo.yaml_file_location)
-        # Otherwise, attempt to build all files in the pantheon2.yml file.
-        else:
-            if os.path.exists('pantheon2.yml'):
-                content_types = ['assemblies','modules']
-                continue_run = True
-
-                pcbuild.prepare_build_directory()
-                pcbuild.copy_resources(pantheon_repo.get_existing_content("resources"))
-
-                for content_type in content_types:
-                    if continue_run:
-                        print("Building %s...\n" % content_type)
-                        continue_run = pcbuild.build_content(pantheon_repo.get_existing_content(content_type), args.lang, output_format, pantheon_repo.repo_location, pantheon_repo.yaml_file_location)
-            else:
-                print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")
-                sys.exit(1)
-
-    # Action - clean
-    elif args.command == 'clean':
-
-        if os.path.exists('build'):
-            shutil.rmtree('build')
-            print("Successfully removed build directory!")
-        else:
-            print("No build directory found; exiting...")
-
-    # Action - find duplicate entries
-    elif args.command == 'duplicates':
-
-        duplicates = pantheon_repo.get_duplicates()
-
-        if duplicates:
-
-            print("Your pantheon2.yml contains the following duplicate entries:\n")
-
-            for duplicate in duplicates:
-                print(duplicate)
-
-            print("\nTotal: ", str(len(duplicates)))
-
-        else:
-
-            print("No duplicates found.")
-
     # Action - generate a pantheon2.yml file
-    elif args.command == 'generate':
+    if args.command == 'generate':
         path_to_script = os.path.dirname(os.path.realpath(__file__))
         call("sh " + path_to_script + "/pv2yml-generator.sh", shell=True)
-
+        sys.exit(0)
 
     # Action - validate yaml syntax, validate yaml keys and values
     # find nonexistent files
@@ -183,7 +101,10 @@ if __name__ == "__main__":
                 sys.exit(2)
             else:
                 print("All files passed validation.")
+                sys.exit(0)
         else:
+
+            pantheon_repo = PantheonRepo(repo_location)
 
             if os.path.exists('pantheon2.yml'):
 
@@ -256,3 +177,85 @@ if __name__ == "__main__":
 
                 print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")
                 sys.exit(1)
+
+    # Exit if not a Pantheon V2 repository
+    if repo_location:
+        # Construct a PantheonRepo instance
+        pantheon_repo = PantheonRepo(repo_location)
+    else:
+        print("Not a Pantheon V2 repository; exiting...")
+        sys.exit(1)
+
+    # Else parse actions
+    # Action - preview
+    if args.command == 'preview':
+      
+        output_format = 'html'
+
+        if args.format:
+            if args.format == 'pdf':
+                output_format = 'pdf'
+      
+        # Did a user specify a set of files? If so, only build those.
+        if args.files:
+            # Handle different interpretations of directories
+            if os.path.isdir(args.files):
+                if args.files.endswith('/'):
+                    args.files += '*.adoc'
+                else:
+                    args.files += '/*.adoc'
+
+            # Get set of files
+            content_subset = pcutil.get_content_subset(args.files)
+
+            # Ensure at least one valid file exists in the set
+            if not content_subset:
+                print("Couldn't find any valid files; exiting...\n")
+                sys.exit(1)
+            else:
+                pcbuild.prepare_build_directory()
+                pcbuild.copy_resources(pantheon_repo.get_existing_content("resources"))
+                pcbuild.build_content(content_subset, args.lang, output_format, pantheon_repo.repo_location, pantheon_repo.yaml_file_location)
+        # Otherwise, attempt to build all files in the pantheon2.yml file.
+        else:
+            if os.path.exists('pantheon2.yml'):
+                content_types = ['assemblies','modules']
+                continue_run = True
+
+                pcbuild.prepare_build_directory()
+                pcbuild.copy_resources(pantheon_repo.get_existing_content("resources"))
+
+                for content_type in content_types:
+                    if continue_run:
+                        print("Building %s...\n" % content_type)
+                        continue_run = pcbuild.build_content(pantheon_repo.get_existing_content(content_type), args.lang, output_format, pantheon_repo.repo_location, pantheon_repo.yaml_file_location)
+            else:
+                print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")
+                sys.exit(1)
+
+    # Action - clean
+    elif args.command == 'clean':
+
+        if os.path.exists('build'):
+            shutil.rmtree('build')
+            print("Successfully removed build directory!")
+        else:
+            print("No build directory found; exiting...")
+
+    # Action - find duplicate entries
+    elif args.command == 'duplicates':
+
+        duplicates = pantheon_repo.get_duplicates()
+
+        if duplicates:
+
+            print("Your pantheon2.yml contains the following duplicate entries:\n")
+
+            for duplicate in duplicates:
+                print(duplicate)
+
+            print("\nTotal: ", str(len(duplicates)))
+
+        else:
+
+            print("No duplicates found.")
