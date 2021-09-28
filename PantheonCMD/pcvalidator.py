@@ -55,8 +55,6 @@ def validation(files_found, modules_found, assemblies_found):
             stripped = Regex.INTERNAL_IFDEF.sub('', stripped)
             nesting_in_modules_check(report, stripped, path)
             add_res_section_module_check(report, stripped, path)
-            icons_check(report, stripped, path)
-            toc_check(report, stripped, path)
 
     for path in assemblies_found:
         with open(path, "r") as file:
@@ -68,7 +66,5 @@ def validation(files_found, modules_found, assemblies_found):
             stripped = Regex.INTERNAL_IFDEF.sub('', stripped)
             nesting_in_assemblies_check(report, stripped, path)
             add_res_section_assembly_check(report, stripped, path)
-            icons_check(report, stripped, path)
-            toc_check(report, stripped, path)
 
     return report
