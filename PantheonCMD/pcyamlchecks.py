@@ -110,7 +110,7 @@ def checks(yaml_file, report):
 
 
 
-def get_missing_keys(yaml_file, report):
+'''def get_missing_keys(yaml_file, report):
     """Return missing keys."""
     missing_keys, empty_keys, missing_variant_keys, missing_variant_value, path_does_not_exist, path_exists = get_missing_yaml_keys(yaml_file)
 
@@ -148,3 +148,4 @@ def get_nonexistent_path(yaml_file, report):
 
     if path_does_not_exist:
         report.create_report('file contains the following file or directory that doesn not exist in your repository', path_does_not_exist)
+'''
