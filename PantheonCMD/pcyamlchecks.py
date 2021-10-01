@@ -44,9 +44,6 @@ def get_attribute_file_validation_results(attribute_file):
             original = file.read()
             stripped = Regex.MULTI_LINE_COMMENT.sub('', original)
             stripped = Regex.SINGLE_LINE_COMMENT.sub('', stripped)
-            stripped = Regex.CODE_BLOCK_DASHES.sub('', stripped)
-            stripped = Regex.CODE_BLOCK_DOTS.sub('', stripped)
-            stripped = Regex.INTERNAL_IFDEF.sub('', stripped)
 
             icons_check(report, stripped, path)
             toc_check(report, stripped, path)
@@ -55,7 +52,6 @@ def get_attribute_file_validation_results(attribute_file):
 
 
 def get_yaml_errors(yaml_schema, yaml_doc):
-
     # load validator with custom error handler
     v = Validator(yaml_schema, error_handler=CustomErrorHandler())
 
