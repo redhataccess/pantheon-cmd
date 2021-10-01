@@ -64,9 +64,10 @@ if __name__ == "__main__":
 
     repo_location = is_pantheon_repo()
 
+    path_to_script = os.path.dirname(os.path.realpath(__file__))
+
     # Action - generate a pantheon2.yml file
     if args.command == 'generate':
-        path_to_script = os.path.dirname(os.path.realpath(__file__))
         call("sh " + path_to_script + "/pv2yml-generator.sh", shell=True)
         sys.exit(0)
 
@@ -109,12 +110,10 @@ if __name__ == "__main__":
 
             if os.path.exists('pantheon2.yml'):
 
-                # find pcmd dir
-                d = os.path.dirname(os.path.realpath(__file__))
                 # load schema
-                e = eval(open(d + '/schema.py', 'r').read())
+                path_to_schema = eval(open(path_to_script + '/schema.py', 'r').read())
                 # call yaml file validation + attribute file validation
-                yaml_validation('pantheon2.yml', e)
+                yaml_validation('pantheon2.yml', path_to_schema)
 
                 exists = get_not_exist(pantheon_repo.get_content())
 
