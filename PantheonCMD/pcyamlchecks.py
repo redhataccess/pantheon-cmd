@@ -96,8 +96,12 @@ def get_yaml_errors(yaml_schema, yaml_doc):
             attribute_file_validation.print_report()
 
 
-def yaml_validation(pv2_yaml_file, schema):
+def yaml_validation(pv2_yaml_file):
     """Validate pv2.yml; get path to attributes while we're at it."""
+
+    path_to_script = os.path.dirname(os.path.realpath(__file__))
+    # load schema
+    schema = eval(open(path_to_script + '/schema.py', 'r').read())
 
     loaded_yaml = load_doc(pv2_yaml_file)
 
