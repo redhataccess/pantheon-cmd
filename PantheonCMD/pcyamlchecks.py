@@ -18,8 +18,8 @@ class CustomErrorHandler(BasicErrorHandler):
     messages[errors.NOT_NULLABLE.code] = "value can't be empty"
 
 
-# test if pv2.yml is empty
 def get_yaml_size(yaml_file):
+    """Test if pv2.yml is empty."""
     if os.path.getsize(yaml_file) == 0:
         print("\nYour pantheon2.yml file is empty; exiting...")
         sys.exit(2)
@@ -98,13 +98,12 @@ def get_yaml_errors(yaml_schema, yaml_doc):
 
 def yaml_validation(pv2_yaml_file):
     """Validate pv2.yml; get path to attributes while we're at it."""
-
+    # define path to script
     path_to_script = os.path.dirname(os.path.realpath(__file__))
     # load schema
     schema = eval(open(path_to_script + '/schema.py', 'r').read())
-
+    # load pv2.yml
     loaded_yaml = load_doc(pv2_yaml_file)
 
     get_yaml_size(pv2_yaml_file)
-
     get_yaml_errors(schema, loaded_yaml)
