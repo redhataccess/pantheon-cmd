@@ -10,7 +10,6 @@ import sys
 from pcutil import PantheonRepo, get_not_exist, get_exist, is_pantheon_repo
 from pcvalidator import validation
 from pcyamlchecks import yaml_validation
-from pcyamlcheck import get_attribute_file_validation_results
 from subprocess import call
 from pcprvalidator import get_changed_files, get_all_modules, get_all_assemblies, get_undetermined_files, get_no_prefix_files
 
