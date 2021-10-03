@@ -74,10 +74,11 @@ def get_yaml_errors(yaml_schema, yaml_doc):
                 path_does_not_exist.append(item)
 
         for variant in yaml_doc['variants']:
-            if not os.path.exists(variant['path']):
-                path_does_not_exist.append(variant['path'])
-            else:
-                path_exists.append(variant['path'])
+            for item in variant['path']:
+                if not os.path.exists(item):
+                    path_does_not_exist.append(item)
+                else:
+                    path_exists.append(item)
 
     if path_does_not_exist:
         print('\nFAIL: Your pantheon2.yml contains the following files or directories that do not exist in your repository:\n')
