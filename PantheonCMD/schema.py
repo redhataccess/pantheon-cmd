@@ -19,7 +19,7 @@
                 },
                 'path': {
                     'required': True,
-                    'type': 'string'
+                    'type': ['string', 'list']
                 },
                 'canonical': {
                     'required': True,
