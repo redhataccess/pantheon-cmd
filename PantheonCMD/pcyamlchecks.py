@@ -54,7 +54,6 @@ def get_attribute_file_validation_results(attribute_file):
 def get_yaml_errors(yaml_schema, yaml_doc):
     # load validator with custom error handler
     v = Validator(yaml_schema, error_handler=CustomErrorHandler())
-
     # validate the pv2.yml with schema
     v.validate(yaml_doc, yaml_schema)
 
@@ -92,14 +91,14 @@ def get_yaml_errors(yaml_schema, yaml_doc):
             attribute_file_validation.print_report()
 
 
-def yaml_validation(pv2_yaml_file):
+def yaml_validation(yaml_file):
     """Validate pv2.yml; get path to attributes while we're at it."""
     # define path to script
     path_to_script = os.path.dirname(os.path.realpath(__file__))
     # load schema
     schema = eval(open(path_to_script + '/schema.py', 'r').read())
     # load pv2.yml
-    loaded_yaml = load_doc(pv2_yaml_file)
+    loaded_yaml = load_doc(yaml_file)
 
-    get_yaml_size(pv2_yaml_file)
+    get_yaml_size(yaml_file)
     get_yaml_errors(schema, loaded_yaml)
