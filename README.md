@@ -45,6 +45,8 @@ Install the RPM and all Ruby gem dependencies.
    ```shell
    $ sudo dnf localinstall build/pantheon-cmd-1.0-X.el8.noarch.rpm
    ```
+   Note that your `rpm` filename might be different, for example, if you are running Fedora.
+   
 2. Install Ruby gem dependencies:
    ```shell
    $ sudo gem install asciidoctor concurrent-ruby haml tilt
