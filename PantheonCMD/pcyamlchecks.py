@@ -21,7 +21,7 @@ class CustomErrorHandler(BasicErrorHandler):
 def get_yaml_size(yaml_file):
     """Test if pv2.yml is empty."""
     if os.path.getsize(yaml_file) == 0:
-        print("\nYour pantheon2.yml file is empty; exiting...")
+        print("\nYour {} file is empty; exiting...".format(yaml_file))
         sys.exit(2)
 
 
@@ -31,7 +31,7 @@ def load_doc(yaml_file):
         try:
             return yaml.safe_load(file)
         except yaml.YAMLError:
-            print("There's a syntax error in your pantheon2.yml file. Please fix it and try again.\nTo detect an error try running yaml lint on your pantheo2.yml file.")
+            print("There's a syntax error in your {} file. Please fix it and try again.\nTo detect an error try running yaml lint on your {} file.".format(yaml_file, yaml_file))
             sys.exit(2)
 
 
@@ -63,7 +63,22 @@ def get_yaml_errors(yaml_schema, yaml_doc):
             print("\n\t'{}' {}".format(key, ', '.join(str(item) for item in v.errors[key])))
         sys.exit(2)
 
-    else:
+
+def get_resources_existence(yaml_doc):
+    path_does_not_exist = []
+
+    for item in yaml_doc['resources']:
+        path_to_images_dir = os.path.split(item)[0]
+        if not glob.glob(path_to_images_dir):
+            path_does_not_exist.append(item)
+
+    if path_does_not_exist:
+        print('\nFAIL: Your pantheon2.yml contains the following files or directories that do not exist in your repository:\n')
+        for path in path_does_not_exist:
+            print('\t', path)
+        sys.exit(2)
+
+    '''else:
 
         path_does_not_exist = []
         path_exists = []
@@ -90,6 +105,7 @@ def get_yaml_errors(yaml_schema, yaml_doc):
         if attribute_file_validation.count != 0:
             print("\nYour attributes file has the following errors:\n")
             attribute_file_validation.print_report()
+'''
 
 
 def yaml_validation(yaml_file):
@@ -103,3 +119,4 @@ def yaml_validation(yaml_file):
 
     get_yaml_size(yaml_file)
     get_yaml_errors(schema, loaded_yaml)
+    get_resources_existence(loaded_yaml)
