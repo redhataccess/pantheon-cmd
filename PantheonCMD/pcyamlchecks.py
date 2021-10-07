@@ -2,13 +2,14 @@
 
 import os
 import sys
+import glob
+import re
 import yaml
+import pprint
 from cerberus import Validator, errors
 from cerberus.errors import BasicErrorHandler
 from pcchecks import Regex, icons_check, toc_check
 from pcvalidator import Report
-import glob
-import re
 
 
 class CustomErrorHandler(BasicErrorHandler):
@@ -149,6 +150,7 @@ def get_variant_attribute_path(yaml_var_doc):
 def get_attribute_file_validation(attribute_file):
     """Validate attributes file."""
     report = Report()
+    attributes = []
 
     for path in attribute_file:
         with open(path, 'r') as file:
@@ -160,7 +162,7 @@ def get_attribute_file_validation(attribute_file):
             toc_check(report, stripped, path)
 
         with open(path, 'r') as file:
-            attributes = parse_attributes(file.readlines())
+            attributes.append(parse_attributes(file.readlines()))
 
     return report, attributes
 
@@ -171,7 +173,7 @@ def get_attribute_file_validation_results(attribute_file):
     return report
 
 
-def get_atributes(attribute_file):
+def get_attributes(attribute_file):
     report, attributes = get_attribute_file_validation(attribute_file)
 
     return attributes
@@ -214,6 +216,8 @@ def variant_yaml_validation(yaml_file):
 
     variant_yaml_files = get_variants_yaml(loaded_yaml)
 
+    result = {}
+
     for item in variant_yaml_files:
         get_yaml_size(item)
 
@@ -223,17 +227,39 @@ def variant_yaml_validation(yaml_file):
 
                 get_yaml_errors(schema2, var_yaml, item)
                 attributes_exist = get_variant_attribute_path(var_yaml)
-                
 
                 if attributes_exist:
-                    return get_atributes(attributes_exist)
+                    result[item] = get_attributes(attributes_exist)
 
             except yaml.YAMLError:
                 print("There's a syntax error in your {0} file. Please fix it and try again.\nTo detect an error try running yaml lint on your {0} file.".format(item))
                 sys.exit(2)
 
-            '''
-            #print(get_attribute_files(loaded_var_yaml))'''
+    return result
 
 
-print(variant_yaml_validation('/home/levi/rhel-8-docs/pantheon2.yml'))
+pp = pprint.PrettyPrinter(width=41, compact=True)
+pp.pprint(variant_yaml_validation('/home/levi/rhel-8-docs/pantheon2.yml'))
+
+
+'''def cleaning_attributes(yaml_file):
+    result = variant_yaml_validation(yaml_file)
+    for item in result:
+        print(item)
+
+
+
+    clean = False
+    while not clean:
+        for attribute, definition in boo.items():
+            boo = {key: value.replace('{' + attribute + '}', definition) for key, value in boo.items()}
+            clean = True
+            for key, value in boo.items():
+                if '{' in value:
+                    clean = False
+                    break
+
+    return boo
+
+
+print(cleaning_attributes('/home/levi/rhel-8-docs/pantheon2.yml'))'''
