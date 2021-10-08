@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import threading
 import yaml
+from pcyamlchecks import variant_yaml_validation
 
 lock = threading.Lock()
 
@@ -21,16 +22,9 @@ def build_content(content_files, lang, repo_location, yaml_file_location):
 
     current_count = 0
 
-    # Parse the main YAML file
-    with open(yaml_file_location, 'r') as f:
-        main_yaml_file = yaml.safe_load(f)
+    attributes = variant_yaml_validation(yaml_file_location)
 
-    for item, members in main_yaml_file.items():
-        if item == 'variants':
-            attributes_file_location = repo_location + members[0]["path"]
-            with open(attributes_file_location,'r') as attributes_file:
-                attributes = parse_attributes(attributes_file.readlines())
-            break
+
     try:
         pool = concurrent.futures.ThreadPoolExecutor()
         futures = []
@@ -50,20 +44,6 @@ def build_content(content_files, lang, repo_location, yaml_file_location):
     print()
 
     return True
-
-
-def parse_attributes(attributes):
-    """Read an attributes file and parse values into a key:value dictionary."""
-
-    final_attributes = {}
-
-    for line in attributes:
-        if re.match(r'^:\S+:.*', line):
-            attribute_name = line.split(":")[1].strip()
-            attribute_value = line.split(":")[2].strip()
-            final_attributes[attribute_name] = attribute_value
-
-    return final_attributes
 
 
 def copy_resources(resources):
@@ -117,7 +97,7 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
     attributes = attributes or {}
     comment_block = False
     lines = []
-    
+
     # Create a copy of global attributes
     if top_level:
         attributes_global = attributes.copy()

@@ -10,23 +10,6 @@
     'variants': {
         'required': True,
         'type': 'list',
-        'schema': {
-            'type': 'dict',
-            'schema': {
-                'name': {
-                    'required': True,
-                    'type': 'string'
-                },
-                'path': {
-                    'required': True,
-                    'type': 'string'
-                },
-                'canonical': {
-                    'required': True,
-                    'allowed': [True, False]
-                }
-            }
-        }
     },
     'assemblies': {
         'required': True,
