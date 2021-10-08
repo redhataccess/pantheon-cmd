@@ -11,11 +11,16 @@ class PantheonRepo():
     """Class for processing information about Pantheon V2 repositories."""
 
 
-    def __init__(self, repo_location):
+    def __init__(self, repo_location, variant_name):
         """Default constructor; accepts repo location and initializes YAML file location."""
 
         self.repo_location = repo_location
         self.yaml_file_location = repo_location + "pantheon2.yml"
+
+        if variant_name == None:
+            self.variant_name = self.get_canonical()
+        else:
+            self.variant_name = variant_name
 
 
     def count_content(self):
@@ -36,6 +41,39 @@ class PantheonRepo():
             content_counts['modules'] += len(glob.glob(module))
 
         return content_counts
+
+
+    def get_attributes(self):
+        """Generates a dictionary of global AsciiDoc attributes from one or more files."""
+        global_attributes = {}
+
+        with open(self.yaml_file_location, 'r') as f:
+            yaml_file = yaml.safe_load(f)
+
+        for variant in yaml_file['variants']:
+            if variant['name'] == self.variant_name:
+                for attributes_file in variant['attributes']:
+                    attributes = self.parse_attributes(attributes_file)
+                    for key in attributes:
+                        global_attributes[key] = attributes[key]
+                break
+
+        return global_attributes
+
+
+    def get_canonical(self):
+        """Searches through a pantheon2.yml file for a canonical variant."""
+        canonical_variant = None
+
+        with open(self.yaml_file_location, 'r') as f:
+            yaml_file = yaml.safe_load(f)
+
+        for variant in yaml_file['variants']:
+            if 'canonical' in variant.keys():
+                if variant['canonical'] == True:
+                    canonical_variant = variant['name']
+
+        return canonical_variant
 
 
     def get_content(self):
@@ -62,12 +100,19 @@ class PantheonRepo():
 
         with open(self.yaml_file_location, 'r') as f:
             yaml_file = yaml.safe_load(f)
-            content_list, content_duplicates = self.get_files(yaml_file, content_type)
-        content_list = sorted(content_list, key=str.lower)
 
-        for item in content_list:
-            if os.path.exists(item):
-                content_found.append(item)
+        for variant in yaml_file['variants']:
+            if variant['name'] == self.variant_name:
+                for content_map in variant['content']:
+                    if os.path.exists(content_map):
+                        content_map_files = yaml.safe_load(open(self.repo_location + content_map))
+
+                        content_list, content_duplicates = self.get_files(content_map_files, content_type)
+                        content_list = sorted(content_list, key=str.lower)
+
+                        for item in content_list:
+                            if os.path.exists(item):
+                                content_found.append(item)
 
         return(sorted(content_found, key=str.lower))
 
@@ -107,6 +152,26 @@ class PantheonRepo():
                 else:
                     content_duplicates.append(content_file)
         return content_list, content_duplicates
+
+
+    def get_variant(self):
+        """Returns the name of the variant; either user-specified, or the canonical."""
+        return self.variant_name
+
+
+    def parse_attributes(self, attributes_file):
+        """Reads AsciiDoc attributes from the specified file and adds them to a dictionary."""
+        attributes = open(self.repo_location + attributes_file).readlines()
+
+        parsed_attributes = {}
+
+        for line in attributes:
+            if re.match(r'^:\S+:.*', line):
+                attribute_name = line.split(":")[1].strip()
+                attribute_value = line.split(":")[2].strip()
+                parsed_attributes[attribute_name] = attribute_value
+
+        return parsed_attributes
 
 
 def get_content_subset(content_files):

@@ -14,28 +14,18 @@ lock = threading.Lock()
 current_count = 0
 
 
-def build_content(content_files, lang, repo_location, yaml_file_location):
+def build_content(content_files, lang, repo_location, attributes, variant):
     """Attempts to build all specified files."""
     content_count = len(content_files)
     global current_count
 
     current_count = 0
 
-    # Parse the main YAML file
-    with open(yaml_file_location, 'r') as f:
-        main_yaml_file = yaml.safe_load(f)
-
-    for item, members in main_yaml_file.items():
-        if item == 'variants':
-            attributes_file_location = repo_location + members[0]["path"]
-            with open(attributes_file_location,'r') as attributes_file:
-                attributes = parse_attributes(attributes_file.readlines())
-            break
     try:
         pool = concurrent.futures.ThreadPoolExecutor()
         futures = []
         for content_file in content_files:
-            futures.append(pool.submit(process_file, content_file, attributes, lang, content_count))
+            futures.append(pool.submit(process_file, content_file, attributes, lang, content_count, variant))
 
         pool.shutdown(wait=True)
     except KeyboardInterrupt:
@@ -52,47 +42,35 @@ def build_content(content_files, lang, repo_location, yaml_file_location):
     return True
 
 
-def parse_attributes(attributes):
-    """Read an attributes file and parse values into a key:value dictionary."""
-
-    final_attributes = {}
-
-    for line in attributes:
-        if re.match(r'^:\S+:.*', line):
-            attribute_name = line.split(":")[1].strip()
-            attribute_value = line.split(":")[2].strip()
-            final_attributes[attribute_name] = attribute_value
-
-    return final_attributes
-
-
-def copy_resources(resources):
+def copy_resources(resources, variant):
     """Copy resources such as images and files to the build directory."""
     script_dir = os.path.dirname(os.path.realpath(__file__))
 
     # Copy resources
     for resource in resources:
         if resource.endswith(('jpg', 'jpeg', 'png', 'svg')):
-            shutil.copy(resource, 'build/images/')
+            shutil.copy(resource, 'build/' + variant + '/images/')
         else:
-            if not os.path.exists('build/files'):
-                os.makedirs('build/files')
-            shutil.copy(resource, 'build/files/')
+            if not os.path.exists('build/' + variant + '/files'):
+                os.makedirs('build/' + variant + '/files')
+            shutil.copy(resource, 'build/' + variant + '/files/')
 
     # Copy styling resources
-    shutil.copytree(script_dir + '/resources', 'build/resources')
+    shutil.copytree(script_dir + '/resources', 'build/' + variant + '/resources')
 
 
-def prepare_build_directory():
+def prepare_build_directory(variant):
     """Removes any existing 'build' directory and creates the directory structure required."""
 
     # Remove build directory if it exists
-    if os.path.exists('build'):
-        shutil.rmtree('build')
+    if os.path.exists('build/' + variant):
+        shutil.rmtree('build/' + variant)
 
     # Create a build directory
-    os.makedirs('build')
-    os.makedirs('build/images')
+    if not os.path.exists('build'):
+        os.makedirs('build')
+    os.makedirs('build/' + variant)
+    os.makedirs('build/' + variant + '/images')
 
 
 def resolve_attribute_tree(content, attributes):
@@ -176,7 +154,7 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
     return attributes, lines
 
 
-def process_file(file_name, attributes, lang, content_count):
+def process_file(file_name, attributes, lang, content_count, variant):
     """Coalesces files and builds them using an AsciiDoctor sub-process."""
     script_dir = os.path.dirname(os.path.realpath(__file__))
     global current_count
@@ -216,4 +194,4 @@ def process_file(file_name, attributes, lang, content_count):
     os.remove(file_name + '.tmp')
 
     # Move the output file to the build directory
-    shutil.move(file_name.replace('.adoc', '.adoc.html'),'build/' + os.path.split(file_name)[1].replace('.adoc', '.html'))
+    shutil.move(file_name.replace('.adoc', '.adoc.html'),'build/' + variant + '/' + os.path.split(file_name)[1].replace('.adoc', '.html'))

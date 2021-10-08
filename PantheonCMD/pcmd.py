@@ -35,6 +35,7 @@ def parse_args():
     parser_a = subparsers.add_parser('preview', help='Build a preview of content.')
     parser_a.add_argument('--files', help='The files to target.')
     parser_a.add_argument('--lang', help='The language to build. For example, ja-JP.')
+    parser_a.add_argument('--variant', help='The variant to build.')
 
     # 'Clean' command
     parser_b = subparsers.add_parser('clean', help='Clean the build directory.')
@@ -187,7 +188,7 @@ if __name__ == "__main__":
     # Exit if not a Pantheon V2 repository
     if repo_location:
         # Construct a PantheonRepo instance
-        pantheon_repo = PantheonRepo(repo_location)
+        pantheon_repo = PantheonRepo(repo_location, args.variant)
     else:
         print("Not a Pantheon V2 repository; exiting...")
         sys.exit(1)
@@ -212,22 +213,23 @@ if __name__ == "__main__":
                 print("Couldn't find any valid files; exiting...\n")
                 sys.exit(1)
             else:
-                pcbuild.prepare_build_directory()
-                pcbuild.copy_resources(pantheon_repo.get_existing_content("resources"))
-                pcbuild.build_content(content_subset, args.lang, pantheon_repo.repo_location, pantheon_repo.yaml_file_location)
+                pcbuild.prepare_build_directory(pantheon_repo.get_variant())
+                pcbuild.copy_resources(pantheon_repo.get_existing_content("resources"), pantheon_repo.get_variant())
+                pcbuild.build_content(content_subset, args.lang, pantheon_repo.repo_location, pantheon_repo.get_attributes(), pantheon_repo.get_variant())
         # Otherwise, attempt to build all files in the pantheon2.yml file.
         else:
+
             if os.path.exists('pantheon2.yml'):
                 content_types = ['assemblies','modules']
                 continue_run = True
 
-                pcbuild.prepare_build_directory()
-                pcbuild.copy_resources(pantheon_repo.get_existing_content("resources"))
+                pcbuild.prepare_build_directory(pantheon_repo.get_variant())
+                pcbuild.copy_resources(pantheon_repo.get_existing_content("resources"), pantheon_repo.get_variant())
 
                 for content_type in content_types:
                     if continue_run:
                         print("Building %s...\n" % content_type)
-                        continue_run = pcbuild.build_content(pantheon_repo.get_existing_content(content_type), args.lang, pantheon_repo.repo_location, pantheon_repo.yaml_file_location)
+                        continue_run = pcbuild.build_content(pantheon_repo.get_existing_content(content_type), args.lang, pantheon_repo.repo_location, pantheon_repo.get_attributes(), pantheon_repo.get_variant())
             else:
                 print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")
                 sys.exit(1)
