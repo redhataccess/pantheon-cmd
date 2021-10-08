@@ -238,28 +238,48 @@ def variant_yaml_validation(yaml_file):
     return result
 
 
-pp = pprint.PrettyPrinter(width=41, compact=True)
-pp.pprint(variant_yaml_validation('/home/levi/rhel-8-docs/pantheon2.yml'))
+pattern = re.compile('\{([^}]+)\}')
+
+original = variant_yaml_validation('/home/levi/rhel-8-docs/pantheon2.yml')
 
 
-'''def cleaning_attributes(yaml_file):
-    result = variant_yaml_validation(yaml_file)
-    for item in result:
-        print(item)
+pattern = re.compile('\{([^}]+)\}')
 
 
+def resolve_attributes(text, dictionary):
+    while True:
+        attributes = pattern.findall(text)
 
-    clean = False
-    while not clean:
-        for attribute, definition in boo.items():
-            boo = {key: value.replace('{' + attribute + '}', definition) for key, value in boo.items()}
-            clean = True
-            for key, value in boo.items():
-                if '{' in value:
-                    clean = False
-                    break
+        if not any(key in dictionary for key in attributes):
+            return text
 
-    return boo
+        for attribute in attributes:
+            if attribute in dictionary:
+                text = text.replace(f'{{{attribute}}}', dictionary[attribute])
 
 
-print(cleaning_attributes('/home/levi/rhel-8-docs/pantheon2.yml'))'''
+def resolve_dictionary(dictionary):
+    result = {}
+
+    for key, value in dictionary.items():
+        result[key] = resolve_attributes(value, dictionary)
+
+    return result
+
+
+def resolve_all(dictionary):
+    result = {}
+
+    for yml_file, items in dictionary.items():
+        new_items = []
+
+        for i in items:
+            new_items.append(resolve_dictionary(i))
+
+        result[yml_file] = new_items
+
+    return result
+
+
+'''pp = pprint.PrettyPrinter(width=41, compact=True)
+pp.pprint(resolve_all(original))'''
