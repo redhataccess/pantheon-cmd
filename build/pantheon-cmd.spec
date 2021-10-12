@@ -11,6 +11,7 @@ BuildArch: noarch
 %if 0%{!?fedora}
 Requires:  python36
 %endif
+Requires:  python3-pygit2
 Requires:  python3-pyyaml
 Requires:  ruby
 Source:    %{name}-%{version}.tar.gz
@@ -37,6 +38,7 @@ install -m 0755 generate-pv2-yml.sh $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/genera
 install -m 0755 pcbuild.py $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/pcbuild.py
 install -m 0755 pcchecks.py $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/pcchecks.py
 install -m 0755 pcmd.py $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/pcmd.py
+install -m 0755 pcprvalidator.py $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/pcprvalidator.py
 install -m 0755 pcutil.py $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/pcutil.py
 install -m 0755 pcvalidator.py $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/pcvalidator.py
 install -m 0755 pcyamlcheck.py $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/pcyamlcheck.py
