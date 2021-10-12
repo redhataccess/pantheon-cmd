@@ -27,7 +27,7 @@ class Printing():
         separator = "\n\t"
 
         for message, items in self.report.items():
-            print("\nFAIL: the following {}:".format(message))
+            print("\nERROR: the following {}:".format(message))
             for item in items:
                 print('\t' + separator.join(item))
 
