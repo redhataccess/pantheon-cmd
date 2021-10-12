@@ -239,7 +239,7 @@ def checks(report, stripped_file, original_file, file_path):
         report.create_report('variable in the level 1 heading', file_path)
 
     if experimental_tag_check(stripped_file):
-        report.create_report('experimental tag not', file_path)
+        report.create_report('files contain UI macros but the :experimental: tag not', file_path)
 
     if html_markup_check(stripped_file):
         report.create_report('HTML markup', file_path)
