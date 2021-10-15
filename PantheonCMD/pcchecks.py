@@ -48,7 +48,6 @@ class Regex:
     EMPTY_LINE_AFTER_ADD_RES_TAG = re.compile(r'\[role="_additional-resources"]\n(?=\n)')
     COMMENT_AFTER_ADD_RES_TAG = re.compile(r'\[role="_additional-resources"]\n(?=\//|(/{4,})(.*\n)*?(/{4,}))')
     EMPTY_LINE_AFTER_ADD_RES_HEADER = re.compile(r'== Additional resources\s\n|\.Additional resources\n\n', re.IGNORECASE)
-    COMMENT_AFTER_ADD_RES_HEADER = re.compile(r'\.Additional resources\s(?=\/\/|(\/{4,})(.*\n)*?(\/{4,}))|== Additional resources\s(?=\/\/|(\/{4,})(.*\n)*?(\/{4,}))', re.IGNORECASE)
 
 
 def icons_check(report, stripped_file, file_path):
@@ -196,13 +195,6 @@ def empty_line_after_add_res_header(stripped_file, original_file):
             return True
 
 
-# gives false positives if there's a normal and a commented out add res section
-def comment_after_add_res_header(stripped_file, original_file):
-    if stripped_file.count(Tags.ADD_RES) == 1:
-        if re.findall(Regex.COMMENT_AFTER_ADD_RES_HEADER, original_file):
-            return True
-
-
 def checks(report, stripped_file, original_file, file_path):
     """Run the checks."""
     if related_info_check(stripped_file):
@@ -225,9 +217,6 @@ def checks(report, stripped_file, original_file, file_path):
 
     if comment_after_add_res_tag(stripped_file, original_file):
         report.create_report('a comment after the additional resources tag was', file_path)
-
-    if comment_after_add_res_header(stripped_file, original_file):
-        report.create_report('a comment after the additional resources header was', file_path)
 
     if vanilla_xref_check(stripped_file):
         report.create_report('vanilla xrefs', file_path)
