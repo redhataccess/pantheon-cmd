@@ -26,11 +26,13 @@ fi
 
 echo 'Installing package dependencies...'
 
-brew Installing python3 ruby subversion
+brew install python3 ruby subversion
 
 echo 'Installing ruby gem dependencies...'
 
-gem Installing asciidoctor concurrent-ruby haml tilt
+sudo gem install asciidoctor concurrent-ruby haml tilt
+
+pip3 install pygit2
 
 echo 'Creating resources directories...'
 
