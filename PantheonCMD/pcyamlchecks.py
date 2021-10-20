@@ -58,7 +58,7 @@ def get_yaml_errors(yaml_schema, yaml_doc):
     v.validate(yaml_doc, yaml_schema)
 
     if v.errors:
-        print("\nFAIL: there is an error in your yaml file:")
+        print("FAIL: there is an error in your yaml file:")
         for key in v.errors.keys():
             print("\n\t'{}' {}".format(key, ', '.join(str(item) for item in v.errors[key])))
         sys.exit(2)
@@ -80,14 +80,14 @@ def get_yaml_errors(yaml_schema, yaml_doc):
                 path_exists.append(variant['path'])
 
     if path_does_not_exist:
-        print('\nFAIL: Your pantheon2.yml contains the following files or directories that do not exist in your repository:\n')
+        print('FAIL: Your pantheon2.yml contains the following files or directories that do not exist in your repository:\n')
         for path in path_does_not_exist:
             print('\t', path)
         sys.exit(2)
     else:
         attribute_file_validation = get_attribute_file_validation_results(path_exists)
         if attribute_file_validation.count != 0:
-            print("\nYour attributes file has the following errors:\n")
+            print("Your attributes file has the following errors:\n")
             attribute_file_validation.print_report()
 
 
