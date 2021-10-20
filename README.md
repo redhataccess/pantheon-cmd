@@ -51,7 +51,7 @@ Install the RPM and all Ruby gem dependencies.
    $ sudo dnf localinstall build/pantheon-cmd-1.0-X.el8.noarch.rpm
    ```
    Note that your `rpm` filename might be different, for example, if you are running Fedora.
-   
+
 2. Install Ruby gem dependencies:
    ```shell
    $ sudo gem install asciidoctor concurrent-ruby haml tilt
@@ -67,53 +67,13 @@ Install the dependencies and copy the source files into your local binaries dire
 
 1. Clone the repository:
    ```
-   $ git clone 
+   $ git clone
    ```
-2. Install Homebrew:
+
+2. Run the `osx-cmd-intallation.sh` installation script:
    ```
-   # /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-   ``` 
-3. Install package dependencies:
+   $ /bin/bash osx-cmd-intallation.sh
    ```
-   $ brew install python3 ruby subversion 
-   ```
-4. Install ruby gem dependencies:
-   ```
-   # gem install asciidoctor concurrent-ruby haml tilt
-   ```
-5. Create resources directories:
-   ```
-   mkdir PantheonCMD/{haml,locales}
-   ```
-6. Get the HAML templates:
-   ```
-   $ svn checkout https://github.com/redhataccess/pantheon/trunk/pantheon-bundle/src/main/resources/apps/pantheon/templates/haml/html5 PantheonCMD/haml
-   ```
-7. Update styling references:
-   ```
-   $ sed -i '' 's/^-\ pantheonCssPath.*/-\ pantheonCssPath\ \=\ \"resources\/rhdocs.min.css\"/' PantheonCMD/haml/document.html.haml
-   $ sed -i '' 's/href\=\"https\:\/\/static\.redhat\.com\/libs\/redhat\/redhat-font\/2\/webfonts\/red-hat-font\.css/href\=\"resources\/red-hat-font.css/' PantheonCMD/haml/document.html.haml
-   ```
-8. Get the locales:
-   ```
-   $ svn checkout https://github.com/asciidoctor/asciidoctor/trunk/data/locale PantheonCMD/locales
-   ```
-9. Remove SVN directories:
-   ```
-   $ rm -rf PantheonCMD/{haml,locales}/.svn
-   ```
-10. Copy the source files to the local binaries directory:
-    ```
-    $ cp -r PantheonCMD /usr/local/bin
-    ```
-11. Add an alias to `~/.zshrc`:
-    ```
-    alias pcmd="/usr/local/bin/python3 /usr/local/bin/PantheonCMD/pcmd.py $@"   
-    ```
-12. Source your `~/.zshrc` file:
-    ```
-    $ source ~/.zshrc
-    ```
 
 ## Licenscing
 
