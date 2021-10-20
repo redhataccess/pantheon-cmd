@@ -190,11 +190,10 @@ if __name__ == "__main__":
     # Action - preview
     if args.command == 'preview':
       
-        output_format = 'html'
-
-        if args.format:
-            if args.format == 'pdf':
+        if args.format == 'pdf':
                 output_format = 'pdf'
+        else:
+                output_format = 'html'
       
         # Did a user specify a set of files? If so, only build those.
         if args.files:
