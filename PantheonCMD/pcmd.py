@@ -9,9 +9,10 @@ import sys
 
 from pcutil import PantheonRepo, get_not_exist, get_exist, is_pantheon_repo
 from pcvalidator import validation
-from pcyamlcheck import get_yaml_validation_results, get_missing_keys, get_empty_values, get_yaml_syntax_errors, get_attribute_file_validation_results
+from pcyamlchecks import yaml_validation
 from subprocess import call
 from pcprvalidator import get_changed_files, get_all_modules, get_all_assemblies, get_undetermined_files, get_no_prefix_files
+
 
 
 def print_header():
@@ -108,51 +109,8 @@ if __name__ == "__main__":
 
             if os.path.exists('pantheon2.yml'):
 
-                # function searches for syntax errors and prints the results
-                syntax_errors = get_yaml_syntax_errors(pantheon_repo)
-                missing_keys = get_missing_keys(pantheon_repo)
-                empty_values = get_empty_values(pantheon_repo)
-
-                if missing_keys:
-
-                    print("\nYour pantheon2.yml is missing the following keys:\n")
-
-                    for key in missing_keys:
-
-                        print('\t' + key)
-
-                    print("\nTotal: ", str(len(missing_keys)))
-                    print('\nPlease fix your pantheon2.yml to validte the files; exiting...')
-                    sys.exit(2)
-
-                if empty_values:
-
-                    print("\nYour pantheon2.yml has the following keys with no value:\n")
-
-                    for value in empty_values:
-
-                        print('\t' + value)
-
-                    print("\nTotal: ", str(len(empty_values)))
-                    print('\nPlease fix your pantheon2.yml to validte the files; exiting...')
-                    sys.exit(2)
-
-                files_found = get_exist(pantheon_repo.get_content())
-                modules_found = pantheon_repo.get_existing_content("modules")
-                assemblies_found = pantheon_repo.get_existing_content("assemblies")
-
-                yaml_validation = get_yaml_validation_results(pantheon_repo)
-
-                if yaml_validation.count != 0:
-                    print("\nYour pantheon2.yml has the following errors:\n")
-                    yaml_validation.print_report()
-                    sys.exit(2)
-
-                attribute_file_validation = get_attribute_file_validation_results(pantheon_repo)
-
-                if attribute_file_validation.count != 0:
-                    print("\nYour attributes file has the following errors:\n")
-                    attribute_file_validation.print_report()
+                # call yaml file validation + attribute file validation
+                yaml_validation('pantheon2.yml')
 
                 exists = get_not_exist(pantheon_repo.get_content())
 
