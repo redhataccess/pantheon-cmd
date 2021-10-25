@@ -38,13 +38,20 @@ After you update the manifest updater and test the changes, you can build an RPM
    $ sh make.sh 1.0
    ```
 
-## Installing the script
+## Installing Pantheon CMD
+
+Install Pantheon CMD on a local system.
+
+## Installing Pantheon CMD on RHEL and Fedora
+
 Install the RPM and all Ruby gem dependencies.
 
 1. Install the RPM:
    ```shell
    $ sudo dnf localinstall build/pantheon-cmd-1.0-X.el8.noarch.rpm
    ```
+   Note that your `rpm` filename might be different, for example, if you are running Fedora.
+
 2. Install Ruby gem dependencies:
    ```shell
    $ sudo gem install asciidoctor concurrent-ruby haml tilt
@@ -53,6 +60,20 @@ Install the RPM and all Ruby gem dependencies.
 The script is installed on your local machine.
 The script provides the `pcmd` command.
 Enter `pcmd -h` in your terminal to view the basic usage instructions.
+
+## Installing Pantheon CMD on OSX
+
+Install the dependencies and copy the source files into your local binaries directory.
+
+1. Clone the repository:
+   ```
+   $ git clone
+   ```
+
+2. Run the `osx-cmd-intallation.sh` installation script:
+   ```
+   $ /bin/bash osx-cmd-intallation.sh
+   ```
 
 ## Licenscing
 

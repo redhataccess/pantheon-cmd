@@ -14,7 +14,7 @@ lock = threading.Lock()
 current_count = 0
 
 
-def build_content(content_files, lang, repo_location, yaml_file_location):
+def build_content(content_files, lang, output_format, repo_location, yaml_file_location):
     """Attempts to build all specified files."""
     content_count = len(content_files)
     global current_count
@@ -35,7 +35,7 @@ def build_content(content_files, lang, repo_location, yaml_file_location):
         pool = concurrent.futures.ThreadPoolExecutor()
         futures = []
         for content_file in content_files:
-            futures.append(pool.submit(process_file, content_file, attributes, lang, content_count))
+            futures.append(pool.submit(process_file, content_file, attributes, lang, output_format, content_count))
 
         pool.shutdown(wait=True)
     except KeyboardInterrupt:
@@ -176,7 +176,7 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
     return attributes, lines
 
 
-def process_file(file_name, attributes, lang, content_count):
+def process_file(file_name, attributes, lang, output_format, content_count):
     """Coalesces files and builds them using an AsciiDoctor sub-process."""
     script_dir = os.path.dirname(os.path.realpath(__file__))
     global current_count
@@ -189,7 +189,7 @@ def process_file(file_name, attributes, lang, content_count):
     # Create a temporary copy of the file, inject the attributes, and write content
     with open(file_name + '.tmp', 'w') as output_file:
         if lang:
-            if lang == 'ja-JP':
+            if lang.lower() == 'ja-JP':
                 output_file.write('include::' + script_dir + '/locales/attributes-ja.adoc[]\n\n')
 
         # Coalesce document
@@ -203,17 +203,29 @@ def process_file(file_name, attributes, lang, content_count):
 
         output_file.write(re.sub(regex_images, r'image:\1\3.\4[', coalesced_content))
 
+    # Resolve language
+    language_code = ''
+
+    if lang:
+        if lang.lower() == 'ja-jp':
+            language_code = '-a lang=ja'
+
     # Run AsciiDoctor on the temporary copy
-    if lang and lang == 'ja-JP':
-        cmd = ('asciidoctor -a toc! -a imagesdir=images -a lang=ja -T ' + script_dir + '/haml/ -E haml ' + file_name + '.tmp').split()
+    if output_format == 'pdf':
+        cmd = ('asciidoctor-pdf ' + language_code + ' -a pdf-themesdir=' + script_dir + '/templates/ -a pdf-theme=' + script_dir + '/templates/red-hat.yml -a pdf-fontsdir=' + script_dir + '/fonts' + ' ' + file_name + '.tmp').split()
     else:
-        cmd = ('asciidoctor -a toc! -a imagesdir=images -T ' + script_dir + '/haml/ -E haml ' + file_name + '.tmp').split()
+        cmd = ('asciidoctor -a toc! ' + language_code + ' -a imagesdir=images -T ' + script_dir + '/haml/ -E haml ' + file_name + '.tmp').split()
 
     # Build the content using AsciiDoctor
-    output = subprocess.run(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    output = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # Delete the temporary copy
     os.remove(file_name + '.tmp')
 
     # Move the output file to the build directory
-    shutil.move(file_name.replace('.adoc', '.adoc.html'),'build/' + os.path.split(file_name)[1].replace('.adoc', '.html'))
+    if output_format == 'pdf':
+        file_extension = '.pdf'
+    else:
+        file_extension = '.html'
+
+    shutil.move(file_name.replace('.adoc', '.adoc' + file_extension),'build/' + os.path.split(file_name)[1].replace('.adoc', file_extension))

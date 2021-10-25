@@ -25,7 +25,7 @@ class Report():
         separator = "\n\t"
 
         for category, files in self.report.items():
-            print("\nFAIL: {} found in the following files:".format(category))
+            print("\nERROR: {} found in the following files:".format(category))
             print('\t' + separator.join(files))
 
 

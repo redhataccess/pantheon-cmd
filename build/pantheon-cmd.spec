@@ -11,6 +11,7 @@ BuildArch: noarch
 %if 0%{!?fedora}
 Requires:  python36
 %endif
+Requires:  python3-pygit2
 Requires:  python3-cerberus
 Requires:  python3-pyyaml
 Requires:  ruby
@@ -38,6 +39,7 @@ install -m 0755 generate-pv2-yml.sh $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/genera
 install -m 0755 pcbuild.py $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/pcbuild.py
 install -m 0755 pcchecks.py $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/pcchecks.py
 install -m 0755 pcmd.py $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/pcmd.py
+install -m 0755 pcprvalidator.py $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/pcprvalidator.py
 install -m 0755 pcutil.py $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/pcutil.py
 install -m 0755 pcvalidator.py $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/pcvalidator.py
 install -m 0755 pcyamlchecks.py $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/pcyamlchecks.py
@@ -45,8 +47,10 @@ install -m 0755 schema.py $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/schema.py
 install -m 0755 pv2yml-generator.sh $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/pv2yml-generator.sh
 install -m 0755 pcmd $RPM_BUILD_ROOT%{_bindir}/pcmd
 
+cp -rf fonts $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/
 cp -rf haml $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/
 cp -rf resources $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/
+cp -rf templates $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/
 cp -rf locales $RPM_BUILD_ROOT%{_libdir}/PantheonCMD/
 cp pcmd.1.gz $RPM_BUILD_ROOT%{_mandir}/man1/
 

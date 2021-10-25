@@ -58,7 +58,7 @@ sed -i 's/href\=\"https\:\/\/static\.redhat\.com\/libs\/redhat\/redhat-font\/2\/
 
 # with find cp doesn't print 'omitting directory'
 find PantheonCMD/* -maxdepth 0 -type f -exec cp {} PantheonCMD/pantheon-cmd-$1 \;
-cp -r PantheonCMD/{haml,resources,locales} PantheonCMD/pantheon-cmd-$1
+cp -r PantheonCMD/{fonts,haml,resources,templates,locales} PantheonCMD/pantheon-cmd-$1
 
 # Package sources ditectory
 tar cvfz PantheonCMD/pantheon-cmd-$1.tar.gz -C PantheonCMD/ pantheon-cmd-$1

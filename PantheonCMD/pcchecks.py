@@ -47,8 +47,7 @@ class Regex:
     ADD_RES_MODULE = re.compile(r'\.Additional resources', re.IGNORECASE)
     EMPTY_LINE_AFTER_ADD_RES_TAG = re.compile(r'\[role="_additional-resources"]\n(?=\n)')
     COMMENT_AFTER_ADD_RES_TAG = re.compile(r'\[role="_additional-resources"]\n(?=\//|(/{4,})(.*\n)*?(/{4,}))')
-    EMPTY_LINE_AFTER_ADD_RES_HEADER = re.compile(r'== Additional resources\s\n|\.Additional resources\s\n', re.IGNORECASE)
-    COMMENT_AFTER_ADD_RES_HEADER = re.compile(r'\.Additional resources\s(?=\//|(/{4,})(.*\n)*?(/{4,}))|== Additional resources\s(?=\//|(/{4,})(.*\n)*?(/{4,}))', re.IGNORECASE)
+    EMPTY_LINE_AFTER_ADD_RES_HEADER = re.compile(r'== Additional resources\s\n|\.Additional resources\n\n', re.IGNORECASE)
 
 
 def icons_check(report, stripped_file, file_path):
@@ -196,13 +195,6 @@ def empty_line_after_add_res_header(stripped_file, original_file):
             return True
 
 
-# gives false positives if there's a normal and a commented out add res section
-def comment_after_add_res_header(stripped_file, original_file):
-    if stripped_file.count(Tags.ADD_RES) == 1:
-        if re.findall(Regex.COMMENT_AFTER_ADD_RES_HEADER, original_file):
-            return True
-
-
 def checks(report, stripped_file, original_file, file_path):
     """Run the checks."""
     if related_info_check(stripped_file):
@@ -226,9 +218,6 @@ def checks(report, stripped_file, original_file, file_path):
     if comment_after_add_res_tag(stripped_file, original_file):
         report.create_report('a comment after the additional resources tag was', file_path)
 
-    if comment_after_add_res_header(stripped_file, original_file):
-        report.create_report('a comment after the additional resources header was', file_path)
-
     if vanilla_xref_check(stripped_file):
         report.create_report('vanilla xrefs', file_path)
 
@@ -239,7 +228,7 @@ def checks(report, stripped_file, original_file, file_path):
         report.create_report('variable in the level 1 heading', file_path)
 
     if experimental_tag_check(stripped_file):
-        report.create_report('experimental tag not', file_path)
+        report.create_report('files contain UI macros but the :experimental: tag not', file_path)
 
     if html_markup_check(stripped_file):
         report.create_report('HTML markup', file_path)
