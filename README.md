@@ -2,12 +2,21 @@
 
 Pantheon CMD is a Python-based command-line tool that allows you to generate a rendered preview of modular documentation using the new HAML templates.
 
+Installing the Pantheon CMD tool using RPM allows users to perform calls using the predefined aliases such as: 
+* `pcmd validate`
+* `pcmd build`
+* `pcmd preview`
+
+Alternatively, a user can clone this repository and add the following `pcmd` scripts on $PATH, but the ability to use predefined aliases will not be possible.
+
 ## Directory Structure
 
 The top level of this repository contains the following files and directories:
 
 **build**
-A directory that contains the latest RPM for the script, and the SPEC file used to generate the RPM.
+A directory that contains the:
+* latest RPM for the script
+* SPEC file used to generate the RPM.
 
 **make.sh**
 A script used to package the script as an RPM-based package that can be installed using *yum* or *dnf*.
@@ -19,7 +28,7 @@ A directory containing the source files for the script, and the man page file.
 All additions and updates to the script are welcome.
 
 ## Packaging the Script
-After you update the manifest updater and test the changes, you can build an RPM-based package for the script so that it can be installed on systems that use *yum* or *dnf*.
+After you update the manifest updater and test the changes, you can build an RPM-based package for the script to be installed on systems that use *yum* or *dnf*.
 
 1. Install the `svn` and `rpmbuild` packages on your system:
    ```shell
@@ -31,12 +40,15 @@ After you update the manifest updater and test the changes, you can build an RPM
    $ sudo dnf install subversion
    $ sudo dnf install rpm-build
    ```  
+2. Clone this repository.
 2. Open *./build/pantheon-cmd.spec*.
 3. Increment the value of the *Release* number.
+    As an example, `Release:   1%{?dist}` will increment the version of the build to `1.0.1`, where `{?dist}` acts as the identification of your Linux distribution.
 4. Run the build script:
    ```shell
    $ sh make.sh 1.0
    ```
+   As a result, the `build/pantheon-cmd-1.0-X.<your-distribution-and-version>.noarch.rpm` file will be generated in the root of the repository. This file will be used in the following step.
 
 ## Installing Pantheon CMD
 
@@ -50,7 +62,10 @@ Install the RPM and all Ruby gem dependencies.
    ```shell
    $ sudo dnf localinstall build/pantheon-cmd-1.0-X.el8.noarch.rpm
    ```
-   Note that your `rpm` filename might be different, for example, if you are running Fedora.
+   Note that your `rpm` filename might differ based on your Linux distribution.
+   * Example:
+        *  `el8` for RHEL 8
+        *  `fc34` for Fedora 34
 
 2. Install Ruby gem dependencies:
    ```shell
@@ -66,16 +81,16 @@ Enter `pcmd -h` in your terminal to view the basic usage instructions.
 Install the dependencies and copy the source files into your local binaries directory.
 
 1. Clone the repository:
-   ```
+   ```shell
    $ git clone
    ```
 
 2. Run the `osx-cmd-intallation.sh` installation script:
-   ```
+   ```shell
    $ /bin/bash osx-cmd-intallation.sh
    ```
 
-## Licenscing
+## Licensing
 
 This script uses locale attributes files from the AsciiDoctor repository.
 
