@@ -2,19 +2,19 @@
 
 Pantheon CMD is a Python-based command-line tool that allows you to generate a rendered preview of modular documentation using the new HAML templates.
 
-Installing the Pantheon CMD tool using RPM allows users to perform calls using the predefined aliases such as: 
+Installing Pantheon CMD using RPM allows you to perform actions using the predefined aliases such as: 
 * `pcmd validate`
 * `pcmd build`
 * `pcmd preview`
 
-Alternatively, a user can clone this repository and add the following `pcmd` scripts on $PATH, but the ability to use predefined aliases will not be possible.
+Alternatively, you can clone this repository and add the following `pcmd` scripts on $PATH, but the ability to use predefined aliases will not be possible.
 
 ## Directory Structure
 
 The top level of this repository contains the following files and directories:
 
 **build**
-A directory that contains the:
+A directory that contains the following files:
 * latest RPM for the script
 * SPEC file used to generate the RPM.
 
@@ -28,7 +28,10 @@ A directory containing the source files for the script, and the man page file.
 All additions and updates to the script are welcome.
 
 ## Packaging the Script
-After you update the manifest updater and test the changes, you can build an RPM-based package for the script to be installed on systems that use *yum* or *dnf*.
+After you update Pantheon CMD and test the changes, build an RPM-based package for the script to be installed on systems that use *yum* or *dnf*.
+
+* Prerequisites:
+    * A user has registered their SSH keys with GitHub.
 
 1. Install the `svn` and `rpmbuild` packages on your system:
    ```shell
@@ -41,14 +44,17 @@ After you update the manifest updater and test the changes, you can build an RPM
    $ sudo dnf install rpm-build
    ```  
 2. Clone this repository.
-2. Open *./build/pantheon-cmd.spec*.
-3. Increment the value of the *Release* number.
-    As an example, `Release:   1%{?dist}` will increment the version of the build to `1.0.1`, where `{?dist}` acts as the identification of your Linux distribution.
-4. Run the build script:
+   ```shell
+   $ git clone git@github.com:redhataccess/pantheon-cmd.git
+   ```
+3. Open *./build/pantheon-cmd.spec*.
+4. Increment the value of the *Release* number.
+    As an example, `Release:   1%{?dist}` increments the version of the build to `1.0.1`, where `{?dist}` identifies of your Linux distribution.
+5. Run the build script:
    ```shell
    $ sh make.sh 1.0
    ```
-   As a result, the `build/pantheon-cmd-1.0-X.<your-distribution-and-version>.noarch.rpm` file will be generated in the root of the repository. This file will be used in the following step.
+   As a result, the `build/pantheon-cmd-1.0-X.<your-distribution-and-version>.noarch.rpm` file is generated in the root of the repository. This file will be used in the following step.
 
 ## Installing Pantheon CMD
 
