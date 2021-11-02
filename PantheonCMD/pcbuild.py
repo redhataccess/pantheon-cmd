@@ -57,11 +57,106 @@ def parse_attributes(attributes):
 
     final_attributes = {}
 
+    conditional = False
+
+    # Iterate over each line of the file
     for line in attributes:
-        if re.match(r'^:\S+:.*', line):
+
+        # Line matches the end of a conditional
+        matches = re.match(r'^endif::(\S+)\[(.*?)\]', line)
+
+        if matches:
+            conditional = False
+            continue
+
+        # Skip if part of a conditional
+        if conditional:
+            continue
+
+        # Line matches an attribute declaration
+        matches = re.match(r'^:\S+:.*', line)
+
+        if matches:
             attribute_name = line.split(":")[1].strip()
             attribute_value = line.split(":")[2].strip()
             final_attributes[attribute_name] = attribute_value
+            continue
+
+        # Line matches the start of an ifdef conditional
+        matches = re.match(r'^ifdef::(\S+)\[(.*?)\]', line)
+
+        if matches:
+            conditions_valid = False
+            conditions = matches.group(1)
+
+            # Multiple conditions - single match is enough
+            if conditions.__contains__('+'):
+                conditions_list = conditions.split('+')
+                for condition in conditions_list:
+                    if not condition in final_attributes.keys():
+                        conditions_valid = True
+                        break
+
+            # Multiple conditions - all must match
+            elif conditions.__contains__(','):
+                conditions_missing = False
+                conditions_list = conditions.split(',')
+                for condition in conditions_list:
+                    if not condition in final_attributes.keys():
+                        conditions_valid = True
+                    else:
+                        conditions_missing = True
+                if conditions_missing:
+                    conditions_valid = False
+
+            # Single condition
+            elif not conditions in final_attributes.keys():
+                conditions_valid = True
+
+            if conditions_valid:
+                if matches.group(2).strip() != '':
+                    continue
+                else:
+                    conditional = True
+            continue
+
+        # Line matches the start of an ifndef conditional
+        matches = re.match(r'^ifndef::(\S+)\[(.*?)\]', line)
+
+        if matches:
+            conditions_valid = False
+            conditions = matches.group(1)
+
+            # Multiple conditions - single match is enough
+            if conditions.__contains__(','):
+                conditions_list = conditions.split(',')
+                for condition in conditions_list:
+                    if condition in final_attributes.keys():
+                        conditions_valid = True
+                        break
+
+            # Multiple conditions - all must match
+            elif conditions.__contains__('+'):
+                conditions_missing = False
+                conditions_list = conditions.split('+')
+                for condition in conditions_list:
+                    if condition in final_attributes.keys():
+                        conditions_valid = True
+                    else:
+                        conditions_missing = True
+                if conditions_missing:
+                    conditions_valid = False
+
+            # Single condition
+            elif conditions in final_attributes.keys():
+                conditions_valid = True
+
+            if conditions_valid:
+                if matches.group(2).strip() != '':
+                    continue
+                else:
+                    conditional = True
+            continue
 
     return final_attributes
 
