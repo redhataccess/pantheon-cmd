@@ -28,8 +28,7 @@ def build_content(content_files, lang, output_format, repo_location, yaml_file_l
     for item, members in main_yaml_file.items():
         if item == 'variants':
             attributes_file_location = repo_location + members[0]["path"]
-            with open(attributes_file_location,'r') as attributes_file:
-                attributes = parse_attributes(attributes_file.readlines())
+            attributes, lines = coalesce_document(attributes_file_location)
             break
     try:
         pool = concurrent.futures.ThreadPoolExecutor()
@@ -50,115 +49,6 @@ def build_content(content_files, lang, output_format, repo_location, yaml_file_l
     print()
 
     return True
-
-
-def parse_attributes(attributes):
-    """Read an attributes file and parse values into a key:value dictionary."""
-
-    final_attributes = {}
-
-    conditional = False
-
-    # Iterate over each line of the file
-    for line in attributes:
-
-        # Line matches the end of a conditional
-        matches = re.match(r'^endif::(\S+)\[(.*?)\]', line)
-
-        if matches:
-            conditional = False
-            continue
-
-        # Skip if part of a conditional
-        if conditional:
-            continue
-
-        # Line matches an attribute declaration
-        matches = re.match(r'^:\S+:.*', line)
-
-        if matches:
-            attribute_name = line.split(":")[1].strip()
-            attribute_value = line.split(":")[2].strip()
-            final_attributes[attribute_name] = attribute_value
-            continue
-
-        # Line matches the start of an ifdef conditional
-        matches = re.match(r'^ifdef::(\S+)\[(.*?)\]', line)
-
-        if matches:
-            conditions_valid = False
-            conditions = matches.group(1)
-
-            # Multiple conditions - single match is enough
-            if conditions.__contains__('+'):
-                conditions_list = conditions.split('+')
-                for condition in conditions_list:
-                    if not condition in final_attributes.keys():
-                        conditions_valid = True
-                        break
-
-            # Multiple conditions - all must match
-            elif conditions.__contains__(','):
-                conditions_missing = False
-                conditions_list = conditions.split(',')
-                for condition in conditions_list:
-                    if not condition in final_attributes.keys():
-                        conditions_valid = True
-                    else:
-                        conditions_missing = True
-                if conditions_missing:
-                    conditions_valid = False
-
-            # Single condition
-            elif not conditions in final_attributes.keys():
-                conditions_valid = True
-
-            if conditions_valid:
-                if matches.group(2).strip() != '':
-                    continue
-                else:
-                    conditional = True
-            continue
-
-        # Line matches the start of an ifndef conditional
-        matches = re.match(r'^ifndef::(\S+)\[(.*?)\]', line)
-
-        if matches:
-            conditions_valid = False
-            conditions = matches.group(1)
-
-            # Multiple conditions - single match is enough
-            if conditions.__contains__(','):
-                conditions_list = conditions.split(',')
-                for condition in conditions_list:
-                    if condition in final_attributes.keys():
-                        conditions_valid = True
-                        break
-
-            # Multiple conditions - all must match
-            elif conditions.__contains__('+'):
-                conditions_missing = False
-                conditions_list = conditions.split('+')
-                for condition in conditions_list:
-                    if condition in final_attributes.keys():
-                        conditions_valid = True
-                    else:
-                        conditions_missing = True
-                if conditions_missing:
-                    conditions_valid = False
-
-            # Single condition
-            elif conditions in final_attributes.keys():
-                conditions_valid = True
-
-            if conditions_valid:
-                if matches.group(2).strip() != '':
-                    continue
-                else:
-                    conditional = True
-            continue
-
-    return final_attributes
 
 
 def copy_resources(resources):
@@ -211,6 +101,8 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
     """Combines the content from includes into a single, contiguous source file."""
     attributes = attributes or {}
     comment_block = False
+    conditional = False
+    conditions_set = ''
     lines = []
     
     # Create a copy of global attributes
@@ -219,26 +111,129 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
 
     # Open the file, iterate over lines
     if os.path.exists(main_file):
+
         with open(main_file) as input_file:
+
             # Iterate over content
             for line in input_file:
-                # Process comment block start and finish
+
+                # Line matches the end of a conditional
+                matches = re.match(r'^endif::(.*?)\[\]', line)
+
+                if matches:
+                    if matches.group(1) != '':
+                        if matches.group(1) == conditions_set:
+                            conditions_set = ''
+                            conditional = False
+                    else:
+                        conditional = False
+                    continue
+
+                # Skip if part of a conditional
+                if conditional:
+                    continue
+
+                # Line matches the start of an ifdef statement
+                matches = re.match(r'^ifdef::(\S+)\[(.*?)\]', line)
+
+                if matches:
+                    conditions_valid = False
+                    conditions = matches.group(1)
+                    conditions_set = matches.group(1)
+
+                    # Multiple conditions - single match is enough
+                    if conditions.__contains__('+'):
+                        conditions_list = conditions.split('+')
+                        for condition in conditions_list:
+                            if not condition in attributes.keys():
+                                conditions_valid = True
+                                break
+
+                    # Multiple conditions - all must match
+                    elif conditions.__contains__(','):
+                        conditions_missing = False
+                        conditions_list = conditions.split(',')
+                        for condition in conditions_list:
+                            if not condition in attributes.keys():
+                                conditions_valid = True
+                            else:
+                                conditions_missing = True
+                        if conditions_missing:
+                            conditions_valid = False
+
+                    # Single condition
+                    elif not conditions in attributes.keys():
+                        conditions_valid = True
+
+                    if conditions_valid:
+                        if matches.group(2).strip() == '':
+                            conditional = True
+                    else:
+                        if matches.group(2).strip() != '':
+                            lines.append(matches.group(2).strip() + '\n')
+                    continue
+
+                # Line matches the start of an ifndef statement
+                matches = re.match(r'^ifndef::(\S+)\[(.*?)\]', line)
+
+                if matches:
+                    conditions_valid = False
+                    conditions = matches.group(1)
+                    conditions_set = matches.group(1)
+
+                    # Multiple conditions - single match is enough
+                    if conditions.__contains__(','):
+                        conditions_list = conditions.split(',')
+                        for condition in conditions_list:
+                            if condition in attributes.keys():
+                                conditions_valid = True
+                                break
+
+                    # Multiple conditions - all must match
+                    elif conditions.__contains__('+'):
+                        conditions_missing = False
+                        conditions_list = conditions.split('+')
+                        for condition in conditions_list:
+                            if condition in attributes.keys():
+                                conditions_valid = True
+                            else:
+                                conditions_missing = True
+                        if conditions_missing:
+                            conditions_valid = False
+
+                    # Single condition
+                    elif conditions in attributes.keys():
+                        conditions_valid = True
+
+                    if conditions_valid:
+                        if matches.group(2).strip() == '':
+                            conditional = True
+                    else:
+                        if matches.group(2).strip() != '':
+                            lines.append(matches.group(2).strip() + '\n')
+                    continue
+
+                # Line matches comment block start or finish
                 if line.strip().startswith('////'):
                     comment_block = True if not comment_block else False
                     continue
-                # Process comment block continuation
+
+                # Skip if part of a comment block
                 elif comment_block:
                     continue
-                # Process inline comments
+
+                # Line matches an inline comment
                 elif line.strip().startswith('//'):
                     continue
-                # Process section depth
+
+                # Line matches a section header; adjust depth
                 elif re.match(r'^=+ \S+', line.strip()):
                     if depth > 0:
                         lines.append(('=' * depth) + line.strip() + '\n')
                     else:
                         lines.append(line.strip() + '\n')
-                # Process includes - recusrive
+
+                # Line matches an include; process recusrively
                 elif line.strip().startswith("include::"):
                     include_depth = 0
                     include_file = line.replace("include::", "").split("[")[0]
@@ -252,7 +247,8 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
                     include_filepath = os.path.join(os.path.dirname(main_file), include_file)
                     attributes, include_lines = coalesce_document(include_filepath, attributes, include_depth, False)
                     lines.extend(include_lines)
-                # Build dictionary of found attributes
+
+                # Line matches an attribute declaration
                 elif re.match(r'^:\S+:.*', line):
                     attribute_name = line.split(":")[1].strip()
                     attribute_value = line.split(":")[2].strip()
@@ -261,6 +257,7 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
                     lines.append(line)
                 else:
                     lines.append(line)
+
             # Add global attribute definitions if main file
             if top_level:
                 lines.insert(0,'\n\n')
