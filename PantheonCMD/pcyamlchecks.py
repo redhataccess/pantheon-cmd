@@ -25,7 +25,7 @@ def get_yaml_size(yaml_file):
         sys.exit(2)
 
 
-def load_doc(yaml_file):
+def load_yml(yaml_file):
     """Load pv2.yml and test for syntax errors."""
     with open(yaml_file, 'r') as file:
         try:
@@ -98,7 +98,7 @@ def yaml_validation(yaml_file):
     # load schema
     schema = eval(open(path_to_script + '/schema.py', 'r').read())
     # load pv2.yml
-    loaded_yaml = load_doc(yaml_file)
+    loaded_yaml = load_yml(yaml_file)
 
     get_yaml_size(yaml_file)
     get_yaml_errors(schema, loaded_yaml)
