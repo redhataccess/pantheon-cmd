@@ -35,6 +35,8 @@ sh make.sh $incremented_release_number
 # install dependencies
 sudo gem install asciidoctor concurrent-ruby haml tilt
 
+sudo dnf install build/pantheon-cmd-*.noarch.rpm
+
 trap : 0
 
 echo >&2 '
