@@ -22,7 +22,7 @@ sudo dnf install subversion
 sudo dnf install rpm-build
 
 
-if [[ $(basename "$PWD") ]] == "pantheon-cmd"; then
+if [[ $(basename "$PWD") = "pantheon-cmd" ]]; then
     release_number=$(grep -o -P '(?<=Release:   ).*(?=%{)' build/pantheon-cmd.spec)
     incremented_release_number=$((release_number+1))
 else
