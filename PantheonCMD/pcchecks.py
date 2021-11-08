@@ -109,17 +109,14 @@ def html_markup_check(stripped_file):
 # Standalone check on modules_found
 def nesting_in_modules_check(report, stripped_file, file_path):
     """Check if modules contains nested content."""
-    if re.findall(Regex.NESTED_ASSEMBLY, stripped_file):
-        report.create_report('nesting in modules. nesting', file_path)
-    if re.findall(Regex.NESTED_MODULES, stripped_file):
+    if re.findall(Regex.NESTED_ASSEMBLY, stripped_file) or re.findall(Regex.NESTED_MODULES, stripped_file):
         report.create_report('nesting in modules. nesting', file_path)
 
 
 # Standalone check on modules_found
 def add_res_section_module_check(report, stripped_file, file_path):
-    if re.findall(Regex.ADDITIONAL_RES, stripped_file):
-        if not re.findall(Regex.ADD_RES_MODULE, stripped_file):
-            report.create_report("Additional resources section for modules should be `.Additional resources`. Wrong section name was", file_path)
+    if re.findall(Regex.ADD_RES_ASSEMBLY, stripped_file):
+        report.create_report("Additional resources section for modules should be `.Additional resources`. Wrong section name was", file_path)
 
 
 # Standalone check on assemblies_found
