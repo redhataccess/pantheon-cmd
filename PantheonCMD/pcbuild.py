@@ -101,7 +101,7 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
     """Combines the content from includes into a single, contiguous source file."""
     attributes = attributes or {}
     comment_block = False
-    conditional = False
+    condition_block = False
     conditions_set = ''
     lines = []
     
@@ -117,27 +117,29 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
             # Iterate over content
             for line in input_file:
 
-                # Line matches the end of a conditional
+                # CONDITIONS
+
+                # Line matches the end of a condition_block
                 matches = re.match(r'^endif::(.*?)\[\]', line)
 
                 if matches:
-                    if matches.group(1) != '':
+                    if matches.group(1) == '':
+                        condition_block = False
+                    else:
                         if matches.group(1) == conditions_set:
                             conditions_set = ''
-                            conditional = False
-                    else:
-                        conditional = False
+                            condition_block = False
                     continue
 
-                # Skip if part of a conditional
-                if conditional:
+                # Line matches the middle of a condition block
+                if condition_block:
                     continue
 
-                # Line matches the start of an ifdef statement
+                # Line matches the start of an ifdef condition
                 matches = re.match(r'^ifdef::(\S+)\[(.*?)\]', line)
 
                 if matches:
-                    conditions_valid = False
+                    conditions_missing = False
                     conditions = matches.group(1)
                     conditions_set = matches.group(1)
 
@@ -146,7 +148,7 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
                         conditions_list = conditions.split('+')
                         for condition in conditions_list:
                             if not condition in attributes.keys():
-                                conditions_valid = True
+                                conditions_missing = True
                                 break
 
                     # Multiple conditions - all must match
@@ -155,29 +157,29 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
                         conditions_list = conditions.split(',')
                         for condition in conditions_list:
                             if not condition in attributes.keys():
-                                conditions_valid = True
+                                conditions_missing = True
                             else:
                                 conditions_missing = True
                         if conditions_missing:
-                            conditions_valid = False
+                            conditions_missing = False
 
                     # Single condition
                     elif not conditions in attributes.keys():
-                        conditions_valid = True
+                        conditions_missing = True
 
-                    if conditions_valid:
+                    if conditions_missing:
                         if matches.group(2).strip() == '':
-                            conditional = True
+                            condition_block = True
                     else:
                         if matches.group(2).strip() != '':
                             lines.append(matches.group(2).strip() + '\n')
                     continue
 
-                # Line matches the start of an ifndef statement
+                # Line matches the start of an ifndef condition
                 matches = re.match(r'^ifndef::(\S+)\[(.*?)\]', line)
 
                 if matches:
-                    conditions_valid = False
+                    conditions_missing = False
                     conditions = matches.group(1)
                     conditions_set = matches.group(1)
 
@@ -186,7 +188,7 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
                         conditions_list = conditions.split(',')
                         for condition in conditions_list:
                             if condition in attributes.keys():
-                                conditions_valid = True
+                                conditions_missing = True
                                 break
 
                     # Multiple conditions - all must match
@@ -195,36 +197,40 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
                         conditions_list = conditions.split('+')
                         for condition in conditions_list:
                             if condition in attributes.keys():
-                                conditions_valid = True
+                                conditions_missing = True
                             else:
                                 conditions_missing = True
                         if conditions_missing:
-                            conditions_valid = False
+                            conditions_missing = False
 
                     # Single condition
                     elif conditions in attributes.keys():
-                        conditions_valid = True
+                        conditions_missing = True
 
-                    if conditions_valid:
+                    if conditions_missing:
                         if matches.group(2).strip() == '':
-                            conditional = True
+                            condition_block = True
                     else:
                         if matches.group(2).strip() != '':
                             lines.append(matches.group(2).strip() + '\n')
                     continue
 
+                # COMMENTS
+
                 # Line matches comment block start or finish
-                if line.strip().startswith('////'):
+                if re.match(r'^////.*', line.strip()):
                     comment_block = True if not comment_block else False
                     continue
 
-                # Skip if part of a comment block
+                # Line matches the middle of a comment block
                 elif comment_block:
                     continue
 
                 # Line matches an inline comment
-                elif line.strip().startswith('//'):
+                elif re.match(r'^//.*', line.strip()):
                     continue
+
+                # OTHER CONDITIONS
 
                 # Line matches a section header; adjust depth
                 elif re.match(r'^=+ \S+', line.strip()):
@@ -234,7 +240,7 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
                         lines.append(line.strip() + '\n')
 
                 # Line matches an include; process recusrively
-                elif line.strip().startswith("include::"):
+                elif re.match(r'^include::.*', line.strip()):
                     include_depth = 0
                     include_file = line.replace("include::", "").split("[")[0]
                     include_options = line.split("[")[1].split("]")[0].split(',')
@@ -242,7 +248,7 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
                         if include_option.__contains__("leveloffset=+"):
                             include_depth += int(include_option.split("+")[1])
                     # Replace attributes in includes, if their values are defined
-                    if re.match(r'^\{\S+\}.*', include_file):
+                    if re.match(r'.*\{\S+\}.*', include_file):
                         include_file = resolve_attribute_tree(include_file, attributes)
                     include_filepath = os.path.join(os.path.dirname(main_file), include_file)
                     attributes, include_lines = coalesce_document(include_filepath, attributes, include_depth, False)
