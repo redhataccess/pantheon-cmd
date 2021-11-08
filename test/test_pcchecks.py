@@ -242,6 +242,31 @@ include::proc_some-module.adoc[]"""
         self.assertNotIn('nesting in modules. nesting', report.report)
 
 
+class TestAddResSectionModuleCheck(unittest.TestCase):
+    def setUp(self):
+        self.file_path = "some/path"
+
+    def test_add_res_section_none(self):
+        report = Report()
+        file_contents = ""
+
+        result = add_res_section_module_check(report, file_contents, self.file_path)
+        self.assertNotIn('Additional resources section for modules should be `.Additional resources`. Wrong section name was', report.report)
+
+    def test_add_res_section_wrong(self):
+        report = Report()
+        file_contents = "== Additional resources"
+
+        result = add_res_section_module_check(report, file_contents, self.file_path)
+        self.assertIn('Additional resources section for modules should be `.Additional resources`. Wrong section name was', report.report)
+
+    def test_add_res_section_correct(self):
+        report = Report()
+        file_contents = ".Additional resources"
+
+        result = add_res_section_module_check(report, file_contents, self.file_path)
+        self.assertNotIn('Additional resources section for modules should be `.Additional resources`. Wrong section name was', report.report)
+
 
 
 class TestLvloffsetCheck(unittest.TestCase):
