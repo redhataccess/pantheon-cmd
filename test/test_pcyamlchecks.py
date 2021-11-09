@@ -48,6 +48,37 @@ class TestLoadYml(unittest.TestCase):
             assert False, f"'valid.yml' raised an exception {exc}"
 
 
+class TestGetYamlErrors(unittest.TestCase):
+    def setUp(self):
+        self.current_path = os.path.dirname(__file__)
+        self.fixtures_path = os.path.join(self.current_path, "fixtures")
+
+    def test_yml_missing_keys(self):
+        path_to_script = os.path.dirname(os.path.realpath(__file__))
+        file_name = (path_to_script + "/fixtures/missing-keys.yml")
+        loaded_yaml = load_yml(file_name)
+        # load schema
+        schema = eval(open(path_to_script + '/../PantheonCMD/schema.py', 'r').read())
+
+        with self.assertRaises(SystemExit) as cm:
+            get_yaml_errors(schema, loaded_yaml)
+
+        self.assertEqual(cm.exception.code, 2)
+
+    def test_valid_yml(self):
+        path_to_script = os.path.dirname(os.path.realpath(__file__))
+        file_name = (path_to_script + "/fixtures/valid.yml")
+        loaded_yaml = load_yml(file_name)
+        # load schema
+        schema = eval(open(path_to_script + '/../PantheonCMD/schema.py', 'r').read())
+
+        try:
+            get_yaml_errors(schema, loaded_yaml)
+        except ZeroDivisionError as exc:
+            assert False, f"'valid.yml' raised an exception {exc}"
+
+
+
 # run all the tests in this file
 if __name__ == '__main__':
     unittest.main()

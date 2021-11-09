@@ -1,9 +1,9 @@
-server: https://pantheon.corp.redhat.com
-repository: rhel-8-docs
+
+repository:
 variants:
   - name: rhel83
     path: rhel-8/common-content/attributes.adoc
-    canonical: true
+    canonical:
 
 assemblies:
   # Cockpit docs
