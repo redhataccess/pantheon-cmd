@@ -25,7 +25,7 @@ def get_yaml_size(yaml_file):
         sys.exit(2)
 
 
-def load_doc(yaml_file):
+def load_yml(yaml_file):
     """Load pv2.yml and test for syntax errors."""
     with open(yaml_file, 'r') as file:
         try:
@@ -33,6 +33,43 @@ def load_doc(yaml_file):
         except yaml.YAMLError:
             print("There's a syntax error in your pantheon2.yml file. Please fix it and try again.\nTo detect an error try running yaml lint on your pantheo2.yml file.")
             sys.exit(2)
+
+
+def get_yaml_errors(yaml_schema, yaml_doc):
+    # load validator with custom error handler
+    v = Validator(yaml_schema, error_handler=CustomErrorHandler())
+    # validate the pv2.yml with schema
+    v.validate(yaml_doc, yaml_schema)
+
+    if v.errors:
+        print("FAIL: there is an error in your yaml file:")
+        for key in v.errors:
+            print('\t', key, v.errors[key])
+        sys.exit(2)
+
+
+def get_paths(yaml_doc):
+    path_does_not_exist = []
+    path_exists = []
+
+    for item in yaml_doc['resources']:
+        path_to_images_dir = os.path.split(item)[0]
+        if not glob.glob(path_to_images_dir):
+            path_does_not_exist.append(item)
+
+    for variant in yaml_doc['variants']:
+        if not os.path.exists(variant['path']):
+            path_does_not_exist.append(variant['path'])
+        else:
+            path_exists.append(variant['path'])
+
+    if path_does_not_exist:
+        print('FAIL: Your pantheon2.yml contains the following files or directories that do not exist in your repository:\n')
+        for path in path_does_not_exist:
+            print('\t', path)
+        sys.exit(2)
+    else:
+        return path_exists
 
 
 def get_attribute_file_validation_results(attribute_file):
@@ -51,46 +88,6 @@ def get_attribute_file_validation_results(attribute_file):
     return report
 
 
-def get_yaml_errors(yaml_schema, yaml_doc):
-    # load validator with custom error handler
-    v = Validator(yaml_schema, error_handler=CustomErrorHandler())
-    # validate the pv2.yml with schema
-    v.validate(yaml_doc, yaml_schema)
-
-    if v.errors:
-        print("FAIL: there is an error in your yaml file:")
-        for key in v.errors.keys():
-            print("\n\t'{}' {}".format(key, ', '.join(str(item) for item in v.errors[key])))
-        sys.exit(2)
-
-    else:
-
-        path_does_not_exist = []
-        path_exists = []
-
-        for item in yaml_doc['resources']:
-            path_to_images_dir = os.path.split(item)[0]
-            if not glob.glob(path_to_images_dir):
-                path_does_not_exist.append(item)
-
-        for variant in yaml_doc['variants']:
-            if not os.path.exists(variant['path']):
-                path_does_not_exist.append(variant['path'])
-            else:
-                path_exists.append(variant['path'])
-
-    if path_does_not_exist:
-        print('FAIL: Your pantheon2.yml contains the following files or directories that do not exist in your repository:\n')
-        for path in path_does_not_exist:
-            print('\t', path)
-        sys.exit(2)
-    else:
-        attribute_file_validation = get_attribute_file_validation_results(path_exists)
-        if attribute_file_validation.count != 0:
-            print("Your attributes file has the following errors:\n")
-            attribute_file_validation.print_report()
-
-
 def yaml_validation(yaml_file):
     """Validate pv2.yml; get path to attributes while we're at it."""
     # define path to script
@@ -98,7 +95,12 @@ def yaml_validation(yaml_file):
     # load schema
     schema = eval(open(path_to_script + '/schema.py', 'r').read())
     # load pv2.yml
-    loaded_yaml = load_doc(yaml_file)
+    loaded_yaml = load_yml(yaml_file)
 
     get_yaml_size(yaml_file)
     get_yaml_errors(schema, loaded_yaml)
+    path_to_attributes = get_paths(loaded_yaml)
+    attribute_file_validation = get_attribute_file_validation_results(path_to_attributes)
+    if attribute_file_validation.count != 0:
+        print("Your attributes file has the following errors:\n")
+        attribute_file_validation.print_report()
