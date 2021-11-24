@@ -4,7 +4,7 @@ Pantheon CMD is a Python-based command-line tool that allows you to generate a r
 
 Installing Pantheon CMD using RPM allows you to perform actions using the predefined aliases such as: 
 * `pcmd validate`
-* `pcmd build`
+* `pcmd generate`
 * `pcmd preview`
 
 Alternatively, you can clone this repository and add the following `pcmd` scripts on $PATH, but the ability to use predefined aliases will not be possible.
