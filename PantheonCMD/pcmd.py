@@ -153,7 +153,11 @@ if __name__ == "__main__":
     # Else parse actions
     # Action - preview
     if args.command == 'preview':
+
+        # Validate the pantheon2.yml file
+        yaml_validation(pantheon_repo.yaml_file_location)
       
+        # Set the output format
         if args.format == 'pdf':
                 output_format = 'pdf'
         else:
