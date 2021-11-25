@@ -18,6 +18,7 @@ class Regex:
     """Define regular expresiions for the checks."""
 
     INCLUDE = re.compile(r'include::.*\]\n')
+    INCLUDED_CONTENT = re.compile(r'(?<=include::).*?(?=\[)')
     MODULE_TYPE = re.compile(r':_module-type: (PROCEDURE|CONCEPT|REFERENCE)')
     PREFIX_ASSEMBLIES = re.compile(r'.*\/assembly.*\.adoc')
     PREFIX_MODULES = re.compile(r'.*\/con.*\.adoc|.*\/proc.*\.adoc|.*\/ref.*\.adoc')

@@ -8,11 +8,12 @@ import shutil
 import sys
 
 from pcutil import PantheonRepo, get_not_exist, get_exist, is_pantheon_repo
-from pcvalidator import validation
+from pcvalidator import validate_build_files
 from pcyamlchecks import yaml_validation
 from subprocess import call
-from pcprvalidator import get_changed_files, get_all_modules, get_all_assemblies, get_undetermined_files, get_no_prefix_files
-
+from pcprvalidator import validate_merge_request_files
+from pcentrypointvalidator import validate_entry_point_files
+from pcmsg import print_message, print_report_message
 
 
 def print_header():
@@ -47,6 +48,7 @@ def parse_args():
     # 'Validate' command
     parser_d = subparsers.add_parser('validate', help='Validate entries in your pantheon2.yml file.')
     parser_d.add_argument('--mr', action='store_true', help='Validate files commited on a merge request.')
+    parser_d.add_argument('--e', nargs=1, help='Validate files from an entry point.')
 
     # 'Generate' command
     parser_e = subparsers.add_parser('generate', help='Generate pantheon2.yml file from a template.')
@@ -76,66 +78,24 @@ if __name__ == "__main__":
     # validate modules and assemblies
     elif args.command == 'validate':
 
-        if args.mr:
+        # user provides paths to files that are relative to current pwd
 
-            changed_files = get_changed_files()
-            files_found = get_exist(changed_files)
-            no_prefix_files = get_no_prefix_files(files_found)
-            modules_found = get_all_modules(files_found, no_prefix_files)
-            assemblies_found = get_all_assemblies(files_found, no_prefix_files)
-            undetermined_file_type = get_undetermined_files(no_prefix_files)
+        if args.e:
+            entry_point_list = args.e
+            validate_entry_point_files(entry_point_list)
 
-            if undetermined_file_type:
-                print("\nYour Merge Request contains the following files that can not be classified as modules or assemblies:\n")
+        elif args.mr:
 
-                for file in undetermined_file_type:
+            validate_merge_request_files()
 
-                    print('\t' + file)
-
-                print("\nTotal: ", str(len(undetermined_file_type)))
-
-            validate = validation(files_found, modules_found, assemblies_found)
-
-            if validate.count != 0:
-                print("\nYour Merge Request contains the following files that did not pass validation:\n")
-                validate.print_report()
-                sys.exit(2)
-            else:
-                print("All files passed validation.")
-                sys.exit(0)
         else:
-
-            pantheon_repo = PantheonRepo(repo_location)
 
             if os.path.exists('pantheon2.yml'):
 
                 # call yaml file validation + attribute file validation
                 yaml_validation('pantheon2.yml')
 
-                exists = get_not_exist(pantheon_repo.get_content())
-
-                if exists:
-
-                    print("\nYour pantheon2.yml contains the following files that do not exist in your repository:\n")
-
-                    for exist in exists:
-
-                        print('\t' + exist)
-
-                    print("\nTotal: ", str(len(exists)))
-
-                files_found = get_exist(pantheon_repo.get_content())
-                modules_found = pantheon_repo.get_existing_content("modules")
-                assemblies_found = pantheon_repo.get_existing_content("assemblies")
-
-                validate = validation(files_found, modules_found, assemblies_found)
-
-                if validate.count != 0:
-                    print("\nYour pantheon2.yml contains the following files that did not pass validation:\n")
-                    validate.print_report()
-                    sys.exit(2)
-                else:
-                    print("All files passed validation.")
+                validate_build_files()
 
             else:
 
@@ -153,12 +113,12 @@ if __name__ == "__main__":
     # Else parse actions
     # Action - preview
     if args.command == 'preview':
-      
+
         if args.format == 'pdf':
                 output_format = 'pdf'
         else:
                 output_format = 'html'
-      
+
         # Did a user specify a set of files? If so, only build those.
         if args.files:
             # Handle different interpretations of directories
@@ -211,13 +171,7 @@ if __name__ == "__main__":
         duplicates = pantheon_repo.get_duplicates()
 
         if duplicates:
-
-            print("Your pantheon2.yml contains the following duplicate entries:\n")
-
-            for duplicate in duplicates:
-                print(duplicate)
-
-            print("\nTotal: ", str(len(duplicates)))
+            print_message(duplicates, 'pantheon2.yml', 'contains the following duplicate entries')
 
         else:
 
