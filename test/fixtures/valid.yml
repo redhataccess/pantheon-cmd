@@ -2,7 +2,7 @@ server: https://pantheon.corp.redhat.com
 repository: rhel-8-docs
 variants:
   - name: rhel83
-    path: rhel-8/common-content/attributes.adoc
+    path: empt
     canonical: true
 
 assemblies:
@@ -18,4 +18,4 @@ modules:
   - rhel-8/common-content/making-open-source-more-inclusive.adoc
 
 resources:
-  - rhel-8/images/*.png
+  - syntax-error.yml

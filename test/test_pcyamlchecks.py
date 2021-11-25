@@ -1,5 +1,6 @@
 import unittest
 import os
+import yaml
 
 from PantheonCMD.pcyamlchecks import *
 
@@ -77,6 +78,18 @@ class TestGetYamlErrors(unittest.TestCase):
         except ZeroDivisionError as exc:
             assert False, f"'valid.yml' raised an exception {exc}"
 
+
+class TestGetPaths(unittest.TestCase):
+
+    def test_fake_paths(self):
+        path_to_script = os.path.dirname(os.path.realpath(__file__))
+        file_name = (path_to_script + "/fixtures/valid.yml")
+        file = yaml.safe_load(file_name)
+
+        with self.assertRaises(SystemExit) as cm:
+            get_paths(file)
+
+        self.assertEqual(cm.exception.code, 2)
 
 
 # run all the tests in this file
