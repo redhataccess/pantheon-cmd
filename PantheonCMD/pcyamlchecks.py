@@ -6,7 +6,7 @@ import yaml
 from cerberus import Validator, errors
 from cerberus.errors import BasicErrorHandler
 from pcchecks import Regex, icons_check, toc_check
-from pcvalidator import Report
+from pcmsg import Report
 import glob
 
 
@@ -58,9 +58,9 @@ def get_yaml_errors(yaml_schema, yaml_doc):
     v.validate(yaml_doc, yaml_schema)
 
     if v.errors:
-        print("FAIL: there is an error in your yaml file:")
-        for key in v.errors.keys():
-            print("\n\t'{}' {}".format(key, ', '.join(str(item) for item in v.errors[key])))
+        print("ERROR: there is an error in your yaml file:")
+        for key in v.errors:
+            print('\t', key, v.errors[key])
         sys.exit(2)
 
     else:
@@ -80,7 +80,7 @@ def get_yaml_errors(yaml_schema, yaml_doc):
                 path_exists.append(variant['path'])
 
     if path_does_not_exist:
-        print('FAIL: Your pantheon2.yml contains the following files or directories that do not exist in your repository:\n')
+        print('ERROR: Your pantheon2.yml contains the following files or directories that do not exist in your repository:\n')
         for path in path_does_not_exist:
             print('\t', path)
         sys.exit(2)
