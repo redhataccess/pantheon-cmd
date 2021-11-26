@@ -207,7 +207,7 @@ class TestHtmlMarkupCheck(unittest.TestCase):
         self.assertIsNone(result, "Should return None when file has no HTML markup.")
 
 
-class TestMestingInModules(unittest.TestCase):
+class TestNestingInModules(unittest.TestCase):
     def setUp(self):
         self.file_path = "some/path"
 

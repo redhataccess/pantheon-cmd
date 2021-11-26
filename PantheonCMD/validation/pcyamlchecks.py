@@ -59,6 +59,7 @@ def get_resources_paths(yaml_doc):
     return resources_path_does_not_exist
 
 
+# TODO: might need to be rewritten to accept a list, not string (schema)
 def get_attribute_paths(yaml_doc):
     path_does_not_exist = []
     path_exists = []

@@ -1,21 +1,15 @@
-server: https://pantheon.corp.redhat.com
-repository: rhel-8-docs
+server: some-server
+repository: some-name
 variants:
-  - name: rhel83
-    path: syntax-error.yml
+  - name: some-name
+    path: some-file.adoc
     canonical: true
 
 assemblies:
-  # Cockpit docs
-  - rhel-8/assemblies/assembly_getting-started-using-the-RHEL-web-console.adoc
-  - rhel-8/assemblies/assembly_managing-user-accounts-in-the-web-console.adoc
-  - rhel-8/assemblies/assembly_managing-services-in-the-web-console.adoc
-
+  - some-file.adoc
 
 modules:
-
-  - rhel-8/common-content/proc_pv2-providing-feedback-on-red-hat-documentation.adoc
-  - rhel-8/common-content/making-open-source-more-inclusive.adoc
+  - some-file.adoc
 
 resources:
-  - syntax-error.yml
+  - some-file.adoc
