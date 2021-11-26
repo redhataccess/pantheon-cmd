@@ -2,7 +2,7 @@ server: https://pantheon.corp.redhat.com
 repository: rhel-8-docs
 variants:
   - name: rhel83
-    path: syntax-error.yml
+    path: fake-path.yml
     canonical: true
 
 assemblies:
@@ -18,4 +18,4 @@ modules:
   - rhel-8/common-content/making-open-source-more-inclusive.adoc
 
 resources:
-  - syntax-error.yml
+  - fake-path.yml

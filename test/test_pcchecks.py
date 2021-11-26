@@ -1,6 +1,6 @@
 import unittest
-from PantheonCMD.pcchecks import *
-from PantheonCMD.pcvalidator import Report
+from PantheonCMD.validation.pcchecks import *
+from PantheonCMD.validation.pcmsg import Report
 
 
 # class for every function

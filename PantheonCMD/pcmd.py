@@ -8,12 +8,12 @@ import shutil
 import sys
 
 from pcutil import PantheonRepo, get_not_exist, get_exist, is_pantheon_repo
-from pcvalidator import validate_build_files
-from pcyamlchecks import yaml_validation
+from validation.pcvalidator import validate_build_files
+from validation.pcyamlchecks import yaml_validation
 from subprocess import call
-from pcprvalidator import validate_merge_request_files
-from pcentrypointvalidator import validate_entry_point_files
-from pcmsg import print_message, print_report_message
+from validation.pcprvalidator import validate_merge_request_files
+from validation.pcentrypointvalidator import validate_entry_point_files
+from validation.pcmsg import print_message, print_report_message
 
 
 def print_header():

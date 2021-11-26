@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
-from pcchecks import Regex, checks, nesting_in_modules_check, nesting_in_assemblies_check, add_res_section_module_check, add_res_section_assembly_check, icons_check, toc_check
+from validation.pcchecks import Regex, checks, nesting_in_modules_check, nesting_in_assemblies_check, add_res_section_module_check, add_res_section_assembly_check, icons_check, toc_check
 import sys
-from pcmsg import print_message, print_report_message, Report
+from validation.pcmsg import print_message, print_report_message, Report
 from pcutil import get_not_exist, get_exist, PantheonRepo, is_pantheon_repo
 
 

@@ -5,8 +5,8 @@ import sys
 import yaml
 from cerberus import Validator, errors
 from cerberus.errors import BasicErrorHandler
-from pcchecks import Regex, icons_check, toc_check
-from pcmsg import Report
+from validation.pcchecks import Regex, icons_check, toc_check
+from validation.pcmsg import Report, print_message
 import glob
 
 
@@ -48,14 +48,20 @@ def get_yaml_errors(yaml_schema, yaml_doc):
         sys.exit(2)
 
 
-def get_paths(yaml_doc):
-    path_does_not_exist = []
-    path_exists = []
+def get_resources_paths(yaml_doc):
+    resources_path_does_not_exist = []
 
     for item in yaml_doc['resources']:
-        path_to_images_dir = os.path.split(item)[0]
-        if not glob.glob(path_to_images_dir):
-            path_does_not_exist.append(item)
+        path_to_images_resources = os.path.split(item)[0]
+        if not glob.glob(path_to_images_resources):
+            resources_path_does_not_exist.append(item)
+
+    return resources_path_does_not_exist
+
+
+def get_attribute_paths(yaml_doc):
+    path_does_not_exist = []
+    path_exists = []
 
     for variant in yaml_doc['variants']:
         if not os.path.exists(variant['path']):
@@ -63,13 +69,22 @@ def get_paths(yaml_doc):
         else:
             path_exists.append(variant['path'])
 
-    if path_does_not_exist:
-        print('ERROR: Your pantheon2.yml contains the following files or directories that do not exist in your repository:\n')
-        for path in path_does_not_exist:
-            print('\t', path)
-        sys.exit(2)
-    else:
-        return path_exists
+    return path_exists, path_does_not_exist
+
+
+def get_attribute_file_path(yaml_doc):
+    path_exists, path_does_not_exist = get_attribute_paths(yaml_doc)
+
+    return path_exists
+
+
+def get_nonexistent_paths(yaml_doc):
+    path_exists, path_does_not_exist = get_attribute_paths(yaml_doc)
+    resources_path_does_not_exist = get_resources_paths(yaml_doc)
+
+    path_does_not_exist = path_does_not_exist + resources_path_does_not_exist
+
+    return path_does_not_exist
 
 
 def get_attribute_file_validation_results(attribute_file):
@@ -99,7 +114,13 @@ def yaml_validation(yaml_file):
 
     get_yaml_size(yaml_file)
     get_yaml_errors(schema, loaded_yaml)
-    path_to_attributes = get_paths(loaded_yaml)
+
+    path_does_not_exist = get_nonexistent_paths(loaded_yaml)
+    if path_does_not_exist:
+        print_message(path_does_not_exist, "pantheon2.yml", "contains the following files or directories that do not exist in your repository")
+        sys.exit(2)
+
+    path_to_attributes = get_attribute_file_path(loaded_yaml)
     attribute_file_validation = get_attribute_file_validation_results(path_to_attributes)
     if attribute_file_validation.count != 0:
         print("Your attributes file has the following errors:\n")

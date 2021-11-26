@@ -5,9 +5,9 @@ from pygit2 import Repository
 import os
 import sys
 import re
-from pcchecks import Regex
-from pcvalidator import validation
-from pcmsg import print_message, print_report_message
+from validation.pcchecks import Regex
+from validation.pcvalidator import validation
+from validation.pcmsg import print_message, print_report_message
 from pcutil import get_exist
 
 

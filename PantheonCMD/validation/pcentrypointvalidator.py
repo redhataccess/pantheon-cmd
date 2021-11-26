@@ -3,12 +3,12 @@
 import argparse
 import re
 import os
-from pcchecks import Regex
+from validation.pcchecks import Regex
 import sys
 from pcutil import get_exist, get_not_exist
-from pcprvalidator import get_no_prefix_files, get_all_modules, get_all_assemblies, get_undetermined_files
-from pcvalidator import validation
-from pcmsg import print_message, print_report_message
+from validation.pcprvalidator import get_no_prefix_files, get_all_modules, get_all_assemblies, get_undetermined_files
+from validation.pcvalidator import validation
+from validation.pcmsg import print_message, print_report_message
 
 parser = argparse.ArgumentParser()
 
