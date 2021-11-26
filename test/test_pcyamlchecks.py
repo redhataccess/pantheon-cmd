@@ -79,6 +79,16 @@ class TestGetYamlErrors(unittest.TestCase):
             assert False, f"'valid.yml' raised an exception {exc}"
 
 
+class TestGetResourcesPaths(unittest.TestCase):
+
+    def test_fake_paths(self):
+        path_to_script = os.path.dirname(os.path.realpath(__file__))
+        file_name = (path_to_script + "/fixtures/wrong-path.yml")
+        file = load_yml(file_name)
+
+        result = get_resources_paths(file)
+        self.assertEqual(result, ['fake-path.yml'])
+
 # run all the tests in this file
 if __name__ == '__main__':
     unittest.main()
