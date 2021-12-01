@@ -85,13 +85,13 @@ def get_no_prefefix_file_type(no_prefix_files):
             stripped = Regex.CODE_BLOCK_DOTS.sub('', stripped)
             stripped = Regex.INTERNAL_IFDEF.sub('', stripped)
 
-            if re.findall(Regex.MODULE_TYPE, stripped):
+            if re.findall(Regex.CONTENT_TYPE, stripped):
                 no_prefix_module_type.append(path)
 
             if re.findall(Regex.INCLUDE, stripped):
                 no_prefix_assembly_type.append(path)
 
-            if not re.findall(Regex.MODULE_TYPE, stripped) and not re.findall(Regex.INCLUDE, stripped):
+            if not re.findall(Regex.CONTENT_TYPE, stripped) and not re.findall(Regex.INCLUDE, stripped):
                 undetermined_file_type.append(path)
 
     return no_prefix_module_type, no_prefix_assembly_type, undetermined_file_type
