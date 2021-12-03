@@ -58,7 +58,7 @@ def get_yaml_errors(yaml_schema, yaml_doc):
     v.validate(yaml_doc, yaml_schema)
 
     if v.errors:
-        print("ERROR: there is an error in your yaml file:")
+        print("ERROR: Your pantheon2.yml contains the following errors:")
         for key in v.errors:
             print('\t', key, v.errors[key])
         sys.exit(2)
