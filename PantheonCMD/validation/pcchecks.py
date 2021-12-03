@@ -17,6 +17,7 @@ class Tags:
 class Regex:
     """Define regular expresiions for the checks."""
 
+    ATTRIBUTE = re.compile(r':[^\s]*:.*(?=\n)')
     INCLUDE = re.compile(r'include::.*\]\n')
     INCLUDED_CONTENT = re.compile(r'(?<=include::).*?(?=\[)')
     CONTENT_TYPE = re.compile(r':_content-type: (PROCEDURE|CONCEPT|REFERENCE|ASSEMBLY)')
