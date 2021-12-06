@@ -41,14 +41,12 @@ def get_full_path_to_includes_with_attributes(files):
 
 def get_unique_entries(list):
     unique = []
-
-    for i in list:
-        if not unique:
-            unique.append(i)
-        else:
-            for x in unique:
-                if not os.path.samefile(i, x):
-                    unique.append(i)
+    for file in list:
+        if file in unique:
+            continue
+        if any(os.path.samefile(file, item) for item in unique):
+            continue
+        unique.append(file)
 
     return unique
 
@@ -56,7 +54,6 @@ def get_unique_entries(list):
 def get_includes(files):
     """Retreives full paths to included files from an entry point."""
     includes_with_attributes = []
-    path_to_includes = []
     path_to_includes_with_attributes = []
     includes_found = []
     includes_not_found = {}
@@ -90,7 +87,7 @@ def get_includes(files):
                         if item.startswith('{'):
                             attribute_in_path = True
                             included_files.remove(include)
-                            includes_with_attributes.append(include)
+                            includes_with_attributes.append(os.path.join(path_to_entry_point, include))
                             break
 
                 for include in included_files:
@@ -100,13 +97,14 @@ def get_includes(files):
                     else:
                         includes_not_found.setdefault(entry, {})[include] = 1
 
-    for include in includes_with_attributes:
-        path_to_includes_with_attributes.append(os.path.join(path_to_entry_point, include))
+    if includes_with_attributes:
+        for include in includes_with_attributes:
+            path_to_includes_with_attributes.append(os.path.join(path_to_entry_point, include))
 
-    path_to_includes_with_attributes = get_full_path_to_includes_with_attributes(path_to_includes_with_attributes)
+        path_to_includes_with_attributes = get_full_path_to_includes_with_attributes(path_to_includes_with_attributes)
 
-    for i in path_to_includes_with_attributes:
-        unique_entries_includes_with_attributes.append(get_unique_entries(i))
+        for i in path_to_includes_with_attributes:
+            unique_entries_includes_with_attributes.append(get_unique_entries(i))
 
     return includes_found, includes_not_found, unique_entries_includes_with_attributes
 
@@ -130,8 +128,9 @@ def get_includes_recursively(files):
     includes_with_attributes = lvl_1_includes_with_attributes + lvl_2_includes_with_attributes + lvl_3_includes_with_attributes + lvl_4_includes_with_attributes
     includes_with_attributes = [j for i in includes_with_attributes for j in i]
 
-    for i in includes_with_attributes:
-        print(type(i))
+    if includes_with_attributes:
+        includes_with_attributes = get_unique_entries(includes_with_attributes)
+
 
     # only valid for entry point
     for file in files:
@@ -153,7 +152,10 @@ def validate_entry_point_files(entry_point_list):
     all_modules = get_all_modules(all_includes_found, no_prefix_files)
     all_undetermined_files = get_undetermined_files(no_prefix_files)
 
-    if all_includes_not_found:
+    for i in all_includes_with_attributes:
+        print(i)
+
+    '''if all_includes_not_found:
         for key, value in all_includes_not_found.items():
             print(f'{os.path.basename(key)} contains the following includes that do not exist in your repository:')
             for v in value:
@@ -161,4 +163,4 @@ def validate_entry_point_files(entry_point_list):
 
     validate = validation(all_includes_found, all_modules, all_assemblies)
 
-    print_report_message(validate, 'entry point')
+    print_report_message(validate, 'entry point')'''
