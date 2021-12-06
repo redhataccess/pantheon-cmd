@@ -87,7 +87,7 @@ def get_includes(files):
                         if item.startswith('{'):
                             attribute_in_path = True
                             included_files.remove(include)
-                            includes_with_attributes.append(os.path.join(path_to_entry_point, include))
+                            includes_with_attributes.append(include)
                             break
 
                 for include in included_files:
