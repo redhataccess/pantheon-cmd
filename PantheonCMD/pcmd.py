@@ -49,6 +49,7 @@ def parse_args():
     parser_d = subparsers.add_parser('validate', help='Validate entries in your pantheon2.yml file.')
     parser_d.add_argument('--mr', action='store_true', help='Validate files commited on a merge request.')
     parser_d.add_argument('--e', nargs=1, help='Validate files from an entry point.')
+    parser_d.add_argument('--a', help='The attributes file.')
 
     # 'Generate' command
     parser_e = subparsers.add_parser('generate', help='Generate pantheon2.yml file from a template.')
@@ -80,7 +81,14 @@ if __name__ == "__main__":
 
         # user provides paths to files that are relative to current pwd
 
+        if args.a:
+            if not args.e:
+                print('ERROR: --a option has to be used together with --e option.')
+                sys.exit(1)
+
         if args.e:
+            if args.a:
+                attribute_files = args.a
             entry_point_list = args.e
             validate_entry_point_files(entry_point_list)
 

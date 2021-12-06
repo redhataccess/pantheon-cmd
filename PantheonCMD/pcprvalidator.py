@@ -42,7 +42,8 @@ def get_prefix_assemblies(files_found):
     prefix_assembly_files = []
 
     for file in files_found:
-        if re.findall(Regex.PREFIX_ASSEMBLIES, file):
+        file_name = os.path.basename(file)
+        if file_name.startswith('assembly'):
             prefix_assembly_files.append(file)
 
     return(sorted(prefix_assembly_files, key=str.lower))
@@ -53,7 +54,8 @@ def get_prefix_modules(files_found):
     prefix_module_files = []
 
     for file in files_found:
-        if re.findall(Regex.PREFIX_MODULES, file):
+        file_name = os.path.basename(file)
+        if file_name.startswith(('proc', 'con', 'ref')):
             prefix_module_files.append(file)
 
     return(sorted(prefix_module_files, key=str.lower))
@@ -64,7 +66,8 @@ def get_no_prefix_files(files_found):
     no_prefix_files = []
 
     for file in files_found:
-        if not re.findall(Regex.PREFIX_ASSEMBLIES, file) and not re.findall(Regex.PREFIX_MODULES, file):
+        file_name = os.path.basename(file)
+        if not file_name.startswith(('proc', 'con', 'ref', 'assembly')):
             no_prefix_files.append(file)
 
     return no_prefix_files
@@ -85,13 +88,15 @@ def get_no_prefefix_file_type(no_prefix_files):
             stripped = Regex.CODE_BLOCK_DOTS.sub('', stripped)
             stripped = Regex.INTERNAL_IFDEF.sub('', stripped)
 
-            if re.findall(Regex.MODULE_TYPE, stripped):
+            content_type = re.findall(Regex.CONTENT_TYPE, original)
+
+            if content_type in (['PROCEDURE'], ['CONCEPT'], ['REFERENCE']):
                 no_prefix_module_type.append(path)
 
-            if re.findall(Regex.INCLUDE, stripped):
+            if content_type == ['ASSEMBLY']:
                 no_prefix_assembly_type.append(path)
 
-            if not re.findall(Regex.MODULE_TYPE, stripped) and not re.findall(Regex.INCLUDE, stripped):
+            if not content_type:
                 undetermined_file_type.append(path)
 
     return no_prefix_module_type, no_prefix_assembly_type, undetermined_file_type

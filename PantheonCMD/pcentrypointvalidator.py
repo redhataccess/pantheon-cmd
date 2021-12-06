@@ -1,16 +1,17 @@
 #!/usr/bin/python3
 
-import argparse
-import re
-import os
-from pcchecks import Regex
+from pcutil import get_not_exist
+from pcmsg import print_message
 import sys
-from pcutil import get_exist, get_not_exist
-from pcprvalidator import get_no_prefix_files, get_all_modules, get_all_assemblies, get_undetermined_files
-from pcvalidator import validation
-from pcmsg import print_message, print_report_message
+import os
+import re
+from pcchecks import Regex
+from pcprvalidator import get_all_assemblies, get_all_modules, get_no_prefix_files, get_undetermined_files
+import glob
 
-parser = argparse.ArgumentParser()
+
+from pcmsg import print_report_message
+from pcvalidator import validation
 
 
 def get_nonexisting_entry_points(entry_point_list):
@@ -21,11 +22,50 @@ def get_nonexisting_entry_points(entry_point_list):
         sys.exit(2)
 
 
-def get_includes(entry_points):
-    path_to_includes = []
+def get_full_path_to_includes_with_attributes(files):
+    wildcard_sub = []
+    full_path = []
 
-    for entry in entry_points:
+    for item in files:
+        attribute = re.findall(Regex.ATTRIBUTE, item)
+        if attribute:
+            replace = re.sub(Regex.ATTRIBUTE, "**", item)
+
+            wildcard_sub.append(replace)
+
+    for i in wildcard_sub:
+        full_path.append(glob.glob(i, recursive=True))
+
+    return full_path
+
+
+def get_unique_entries(list):
+    unique = []
+
+    for i in list:
+        if not unique:
+            unique.append(i)
+        else:
+            for x in unique:
+                if not os.path.samefile(i, x):
+                    unique.append(i)
+
+    return unique
+
+
+def get_includes(files):
+    """Retreives full paths to included files from an entry point."""
+    includes_with_attributes = []
+    path_to_includes = []
+    path_to_includes_with_attributes = []
+    includes_found = []
+    includes_not_found = {}
+    unique_entries_includes_with_attributes = []
+
+    for entry in files:
         path_to_entry_point = os.path.dirname(os.path.abspath(entry))
+
+        # check existence
 
         with open(entry, 'r') as file:
             original = file.read()
@@ -37,90 +77,90 @@ def get_includes(entry_points):
             if included_files:
 
                 for include in included_files[:]:
-                    if include.startswith('_'):
-                        included_files.remove(include)
+                    itemized_path = include.split(os.sep)
 
-                for i in included_files:
-                    path_to_includes.append(os.path.join(path_to_entry_point, i))
+                    attribute_in_path = False
+                    attribute_file = False
 
-    return path_to_includes
+                    for item in itemized_path:
+                        if item.startswith('_'):
+                            attribute_file = True
+                            included_files.remove(include)
+                            break
+                        if item.startswith('{'):
+                            attribute_in_path = True
+                            included_files.remove(include)
+                            includes_with_attributes.append(include)
+                            break
 
+                for include in included_files:
+                    full_path = os.path.join(path_to_entry_point, include)
+                    if os.path.exists(full_path):
+                        includes_found.append(full_path)
+                    else:
+                        includes_not_found.setdefault(entry, {})[include] = 1
 
-def get_level_one_includes(files):
-    path_to_level_one_includes = get_includes(files)
+    for include in includes_with_attributes:
+        path_to_includes_with_attributes.append(os.path.join(path_to_entry_point, include))
 
-    return path_to_level_one_includes
+    path_to_includes_with_attributes = get_full_path_to_includes_with_attributes(path_to_includes_with_attributes)
 
+    for i in path_to_includes_with_attributes:
+        unique_entries_includes_with_attributes.append(get_unique_entries(i))
 
-def get_level_two_includes(files):
-    path_to_level_two_includes = get_includes(files)
-
-    return path_to_level_two_includes
-
-
-def get_level_three_includes(files):
-    path_to_level_three_includes = get_includes(files)
-
-    return path_to_level_three_includes
-
-
-def get_level_four_includes(files):
-    path_to_level_four_includes = get_includes(files)
-
-    return path_to_level_four_includes
-
-
-def get_concatenated_includes(entry_point_list):
-    existing_entry_points = get_exist(entry_point_list)
-    level_one_includes = get_level_one_includes(existing_entry_points)
-    level_two_includes = get_level_two_includes(level_one_includes)
-    level_three_includes = get_level_three_includes(level_two_includes)
-    level_four_includes = get_level_four_includes(level_three_includes)
-    no_prefix_level_four_includes = get_no_prefix_files(level_four_includes)
-    level_four_modules = get_all_modules(level_four_includes, no_prefix_level_four_includes)
-    level_four_assemblies = get_all_assemblies(level_four_includes, no_prefix_level_four_includes)
-
-    all_includes = level_one_includes + level_two_includes + level_three_includes + level_four_modules
-
-    return all_includes, level_four_assemblies
+    return includes_found, includes_not_found, unique_entries_includes_with_attributes
 
 
-def get_level_four_assemblies(entry_point_list):
-    all_includes, level_four_assemblies = get_concatenated_includes(entry_point_list)
+def get_includes_recursively(files):
 
-    return level_four_assemblies
+    lvl_1_includes_found, lvl_1_includes_not_found, lvl_1_includes_with_attributes = get_includes(files)
 
+    lvl_2_includes_found, lvl_2_includes_not_found, lvl_2_includes_with_attributes = get_includes(lvl_1_includes_found)
 
-def get_all_includes(entry_point_list):
-    all_includes, level_four_assemblies = get_concatenated_includes(entry_point_list)
+    lvl_3_includes_found, lvl_3_includes_not_found, lvl_3_includes_with_attributes = get_includes(lvl_2_includes_found)
 
-    for entry in entry_point_list:
-        if not entry.endswith('master.adoc'):
-            all_includes = all_includes + entry_point_list
+    lvl_4_includes_found, lvl_4_includes_not_found, lvl_4_includes_with_attributes = get_includes(lvl_3_includes_found)
 
-    for include in all_includes:
-        if os.path.basename(include).startswith('_'):
-            all_includes.remove(include)
+    includes_found = lvl_1_includes_found + lvl_2_includes_found + lvl_3_includes_found + lvl_4_includes_found
 
-    return all_includes
+    #includes_not_found = lvl_1_includes_not_found + lvl_2_includes_not_found + lvl_3_includes_not_found + lvl_3_includes_not_found + lvl_4_includes_not_found
+
+    includes_not_found = {**lvl_1_includes_not_found , **lvl_2_includes_not_found, **lvl_3_includes_not_found, **lvl_4_includes_not_found}
+
+    includes_with_attributes = lvl_1_includes_with_attributes + lvl_2_includes_with_attributes + lvl_3_includes_with_attributes + lvl_4_includes_with_attributes
+    includes_with_attributes = [j for i in includes_with_attributes for j in i]
+
+    for i in includes_with_attributes:
+        print(type(i))
+
+    # only valid for entry point
+    for file in files:
+        file_name = os.path.basename(file)
+        if not file_name == 'master.adoc':
+            includes_found.append(file)
+
+    return includes_found, includes_not_found, includes_with_attributes
 
 
 def validate_entry_point_files(entry_point_list):
-    # exit if entry point doesn't exist
     get_nonexisting_entry_points(entry_point_list)
-    existing_entry_points = get_exist(entry_point_list)
-    includes = get_all_includes(entry_point_list)
-    no_prefix_files = get_no_prefix_files(includes)
-    modules_found = get_all_modules(includes, no_prefix_files)
-    assemblies_found = get_all_assemblies(includes, no_prefix_files)
-    undetermined_file_type = get_undetermined_files(no_prefix_files)
-    level_four_assemblies = get_level_four_assemblies(existing_entry_points)
 
-    if level_four_assemblies:
-        print_message(level_four_assemblies, 'entry point', 'contains unsupported level of nesting for the following files')
+    all_includes_found, all_includes_not_found, all_includes_with_attributes = get_includes_recursively(entry_point_list)
 
-    if undetermined_file_type:
-        print_message(undetermined_file_type, 'entry point', 'contains the following files that can not be classified as modules or assemblies')
+    no_prefix_files = get_no_prefix_files(all_includes_found)
 
-    validate = validation(includes, modules_found, assemblies_found)
-    print_report_message(validate, 'entry point')
+    all_assemblies = get_all_assemblies(all_includes_found, no_prefix_files)
+    all_modules = get_all_modules(all_includes_found, no_prefix_files)
+    all_undetermined_files = get_undetermined_files(no_prefix_files)
+
+    print(all_includes_with_attributes)
+
+    '''if all_includes_not_found:
+        for key, value in all_includes_not_found.items():
+            print(f'{os.path.basename(key)} contains the following includes that do not exist in your repository:')
+            for v in value:
+                print('\t', v)
+
+    validate = validation(all_includes_found, all_modules, all_assemblies)
+
+    print_report_message(validate, 'entry point')'''
