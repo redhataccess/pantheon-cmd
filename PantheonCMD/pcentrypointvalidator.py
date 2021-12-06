@@ -153,9 +153,7 @@ def validate_entry_point_files(entry_point_list):
     all_modules = get_all_modules(all_includes_found, no_prefix_files)
     all_undetermined_files = get_undetermined_files(no_prefix_files)
 
-    print(all_includes_with_attributes)
-
-    '''if all_includes_not_found:
+    if all_includes_not_found:
         for key, value in all_includes_not_found.items():
             print(f'{os.path.basename(key)} contains the following includes that do not exist in your repository:')
             for v in value:
@@ -163,4 +161,4 @@ def validate_entry_point_files(entry_point_list):
 
     validate = validation(all_includes_found, all_modules, all_assemblies)
 
-    print_report_message(validate, 'entry point')'''
+    print_report_message(validate, 'entry point')
