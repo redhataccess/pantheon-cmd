@@ -117,7 +117,7 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
     attributes = attributes or {}
     comment_block = False
     lines = []
-    
+
     # Create a copy of global attributes
     if top_level:
         attributes_global = attributes.copy()
