@@ -40,7 +40,7 @@ class Regex:
     HUMAN_READABLE_LABEL_LINK = re.compile(r'\b(?:https?|file|ftp|irc):\/\/[^\s\[\]<]*\[\]')
     NESTED_ASSEMBLY = re.compile(r'include.*assembly([a-z|0-9|A-Z|\-|_]+)\.adoc(\[.*\])')
     NESTED_MODULES = re.compile(r'include.*(proc|con|ref)([a-z|0-9|A-Z|\-|_]+)\.adoc(\[.*\])')
-    RELATED_INFO = re.compile(r'= Related information|.Related information', re.IGNORECASE)
+    RELATED_INFO = re.compile(r'= Related information|\.Related information', re.IGNORECASE)
     ADDITIONAL_RES = re.compile(r'= Additional resources|\.Additional resources', re.IGNORECASE)
     ADD_RES_TAG = re.compile(r'\[role="_additional-resources"]')
     ADD_RES_ASSEMBLY = re.compile(r'== Additional resources', re.IGNORECASE)
