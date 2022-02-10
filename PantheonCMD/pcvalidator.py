@@ -2,31 +2,8 @@
 
 from pcchecks import Regex, checks, nesting_in_modules_check, nesting_in_assemblies_check, add_res_section_module_check, add_res_section_assembly_check, icons_check, toc_check
 import sys
-
-
-class Report():
-    """Create and print report. thank u J."""
-
-    def __init__(self):
-        """Create placeholder for problem description."""
-        self.report = {}
-        self.count = 0
-
-    def create_report(self, category, file_path):
-        """Generate report."""
-        self.count += 1
-        if not category in self.report:
-            self.report[category] = []
-        self.report[category].append(file_path)
-
-    def print_report(self):
-
-        """Print report."""
-        separator = "\n\t"
-
-        for category, files in self.report.items():
-            print("\nERROR: {} found in the following files:".format(category))
-            print('\t' + separator.join(files))
+from pcmsg import print_message, print_report_message, Report
+from pcutil import get_not_exist, get_exist, PantheonRepo, is_pantheon_repo
 
 
 def validation(files_found, modules_found, assemblies_found):
@@ -68,3 +45,21 @@ def validation(files_found, modules_found, assemblies_found):
             add_res_section_assembly_check(report, stripped, path)
 
     return report
+
+
+def validate_build_files():
+    repo_location = is_pantheon_repo()
+    pantheon_repo = PantheonRepo(repo_location)
+
+    exists = get_not_exist(pantheon_repo.get_content())
+
+    if exists:
+        print_message(exists, 'pantheon2.yml', 'contains the following files that do not exist in your repositor')
+
+    files_found = get_exist(pantheon_repo.get_content())
+    modules_found = pantheon_repo.get_existing_content("modules")
+    assemblies_found = pantheon_repo.get_existing_content("assemblies")
+
+    validate = validation(files_found, modules_found, assemblies_found)
+
+    print_report_message(validate, 'pantheon2.yml')
