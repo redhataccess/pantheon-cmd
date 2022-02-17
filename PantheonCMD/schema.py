@@ -1,8 +1,4 @@
 {
-    'server': {
-        'required': True,
-        'type': 'string'
-    },
     'repository': {
         'required': True,
         'type': 'string'
@@ -17,27 +13,33 @@
                     'required': True,
                     'type': 'string'
                 },
-                'path': {
+                'attributes': {
                     'required': True,
+                    'type': 'list'
+                },
+                'nav': {
+                    'required': False,
                     'type': 'string'
                 },
-                'canonical': {
+                'build': {
                     'required': True,
                     'allowed': [True, False]
+                },
+                'files': {
+                    'required': True,
+                    'type': 'dict',
+                    'schema': {
+                        'included': {
+                            'required': True,
+                            'type': 'list'
+                        },
+                        'excluded': {
+                            'required': False,
+                            'type': 'list'
+                        }
+                    }
                 }
             }
         }
-    },
-    'assemblies': {
-        'required': True,
-        'type': 'list'
-    },
-    'modules': {
-        'required': True,
-        'type': 'list'
-    },
-    'resources': {
-        'required': True,
-        'type': 'list'
     }
 }
