@@ -5,7 +5,7 @@ import sys
 import yaml
 from cerberus import Validator, errors
 from cerberus.errors import BasicErrorHandler
-from pcchecks import Regex, icons_check, toc_check
+from pcchecks import Regex, icons_check, toc_check, nbsp_check
 from pcvalidator import Report
 import glob
 
@@ -31,7 +31,7 @@ def load_doc(yaml_file):
         try:
             return yaml.safe_load(file)
         except yaml.YAMLError:
-            print("There's a syntax error in your build.yml file. Please fix it and try again.\nTo detect an error try running yaml lint on your pantheo2.yml file.")
+            print("There's a syntax error in your build.yml file. Please fix it and try again.\nTo detect an error try running yaml lint on your build.yml file.")
             sys.exit(2)
 
 
@@ -47,6 +47,7 @@ def get_attribute_file_validation_results(attribute_file):
 
             icons_check(report, stripped, path)
             toc_check(report, stripped, path)
+            nbsp_check(report, stripped, path)
 
     return report
 
@@ -68,16 +69,12 @@ def get_yaml_errors(yaml_schema, yaml_doc):
         path_does_not_exist = []
         path_exists = []
 
-        for item in yaml_doc['resources']:
-            path_to_images_dir = os.path.split(item)[0]
-            if not glob.glob(path_to_images_dir):
-                path_does_not_exist.append(item)
-
         for variant in yaml_doc['variants']:
-            if not os.path.exists(variant['path']):
-                path_does_not_exist.append(variant['path'])
+            for item in variant['attributes']:
+                if not os.path.exists(item):
+                    path_does_not_exist.append(item)
             else:
-                path_exists.append(variant['path'])
+                path_exists.append(item)
 
     if path_does_not_exist:
         print('FAIL: Your build.yml contains the following files or directories that do not exist in your repository:\n')
