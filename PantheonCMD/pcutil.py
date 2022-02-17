@@ -15,16 +15,16 @@ class PantheonRepo():
         """Default constructor; accepts repo location and initializes YAML file location."""
 
         self.repo_location = repo_location
-        self.yaml_file_location = repo_location + "pantheon2.yml"
+        self.yaml_file_location = repo_location + "build.yml"
 
 
     def count_content(self):
-        """Counts the number of assemblies and modules in a pantheon2.yml file."""
+        """Counts the number of assemblies and modules in a build.yml file."""
         # Initialize dictionary
         content_counts = {'assemblies': 0, 'modules': 0}
 
         # Parse the main YAML file
-        with open(self.yaml_file_location + 'pantheon2.yml', 'r') as f:
+        with open(self.yaml_file_location + 'build.yml', 'r') as f:
             yaml_file = yaml.safe_load(f)
 
         # Count assemblies
@@ -39,7 +39,7 @@ class PantheonRepo():
 
 
     def get_content(self):
-        """Returns a sorted list of the modules and assemblies specified in a pantheon2.yml file."""
+        """Returns a sorted list of the modules and assemblies specified in a build.yml file."""
         with open(self.yaml_file_location, 'r') as f:
             yaml_file = yaml.safe_load(f)
             content_list, content_duplicates = self.get_files(yaml_file, "assemblies", "modules")
@@ -48,7 +48,7 @@ class PantheonRepo():
 
 
     def get_duplicates(self):
-        """Returns duplicate entries of modules and assemblies found in a pantheon2.yml file."""
+        """Returns duplicate entries of modules and assemblies found in a build.yml file."""
         with open(self.yaml_file_location, 'r') as f:
             yaml_file = yaml.safe_load(f)
             content_list, content_duplicates = self.get_files(yaml_file, "assemblies", "modules")
@@ -57,7 +57,7 @@ class PantheonRepo():
 
 
     def get_existing_content(self, content_type):
-        """Returns content found in a pantheon2.yml file that exist as files."""
+        """Returns content found in a build.yml file that exist as files."""
         content_found = []
 
         with open(self.yaml_file_location, 'r') as f:
@@ -73,7 +73,7 @@ class PantheonRepo():
 
 
     def get_files(self, main_yaml_file, *arguments):
-        """Returns a sorted list of the modules and assemblies specified in a pantheon2.yml file."""
+        """Returns a sorted list of the modules and assemblies specified in a build.yml file."""
         content_files = []
         content_list = []
         content_duplicates = []
@@ -166,7 +166,7 @@ def is_pantheon_repo():
     repo_location = None
 
     while path_components:
-        if os.path.exists(os.sep.join(path_components) + os.sep + 'pantheon2.yml'):
+        if os.path.exists(os.sep.join(path_components) + os.sep + 'build.yml'):
             repo_location = os.sep.join(path_components) + os.sep
             break
         path_components.pop()
