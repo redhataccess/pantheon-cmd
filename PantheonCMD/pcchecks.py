@@ -9,6 +9,8 @@ class Tags:
     ABSTRACT = '[role="_abstract"]'
     ADD_RES = '[role="_additional-resources"]'
     EXPERIMENTAL = ':experimental:'
+    NBSP_ATT = ':nbsp: &nbsp'
+    NBSP_VAR = '{nbsp}'
     LVLOFFSET = ':leveloffset:'
     ICONS = ':icons:'
     TOC = ':toc:'
@@ -60,6 +62,13 @@ def toc_check(report, stripped_file, file_path):
     """Check if the file contains toc attribute."""
     if re.findall(Tags.TOC, stripped_file):
         report.create_report('toc attribute', file_path)
+
+
+def nbsp_check(report, stripped_file, file_path):
+    if re.findall(Tags.NBSP_ATT, stripped_file):
+        return
+    elif re.findall(Tags.NBSP_VAR, stripped_file):
+        report.create_report('`{nsbp}` attribute is used but not defined. `:nbsp: &nbsp` attribute is not', file_path)
 
 
 def vanilla_xref_check(stripped_file):
