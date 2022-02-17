@@ -49,7 +49,7 @@ def parse_args():
     parser_d.add_argument('--mr', action='store_true', help='Validate files commited on a merge request.')
 
     # 'Generate' command
-    parser_e = subparsers.add_parser('generate', help='Generate pantheon2.yml file from a template.')
+    parser_e = subparsers.add_parser('generate', help='Generate build.yml file from a template.')
 
     return parser.parse_args()
 
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     # Action - generate a pantheon2.yml file
     if args.command == 'generate':
         path_to_script = os.path.dirname(os.path.realpath(__file__))
-        call("sh " + path_to_script + "/pv2yml-generator.sh", shell=True)
+        call("sh " + path_to_script + "/buildyml-generator.sh", shell=True)
         sys.exit(0)
 
     # Action - validate yaml syntax, validate yaml keys and values
@@ -156,13 +156,13 @@ if __name__ == "__main__":
 
         # Validate the pantheon2.yml file
         yaml_validation(pantheon_repo.yaml_file_location)
-      
+
         # Set the output format
         if args.format == 'pdf':
                 output_format = 'pdf'
         else:
                 output_format = 'html'
-      
+
         # Did a user specify a set of files? If so, only build those.
         if args.files:
             # Handle different interpretations of directories
