@@ -89,13 +89,22 @@ def get_yaml_errors(yaml_schema, yaml_doc):
             attribute_file_validation.print_report()
 
 
-def get_files(yaml_doc):
-    included_files = []
+def remove_duplicates(files):
     file_list = []
+
+    for file in files:
+        if file not in file_list:
+            file_list.append(file)
+
+    return file_list
+
+
+def get_files(yaml_doc, var):
+    included_files = []
     wildcards = re.compile(r'[*?\[\]]')
 
     for yaml_dict in yaml_doc['variants']:
-        for include in yaml_dict['files']['included']:
+        for include in yaml_dict['files'][var]:
             if wildcards.search(include):
                 expanded_items = glob.glob(include)
                 if expanded_items:
@@ -106,11 +115,18 @@ def get_files(yaml_doc):
             else:
                 included_files.append(include)
 
-        for file in included_files:
-            if file not in file_list:
-                file_list.append(file)
-
     return included_files
+
+
+def get_content_list(yaml_doc):
+
+    included_files = get_files(yaml_doc, 'included')
+    #excluded_files = get_files(yaml_doc, 'excluded')
+
+    includes = remove_duplicates(included_files)
+    #excludes = remove_duplicates(excluded_files)
+
+    return includes
 
 
 def yaml_validation(yaml_file):
@@ -124,4 +140,4 @@ def yaml_validation(yaml_file):
 
     get_yaml_size(yaml_file)
     get_yaml_errors(schema, loaded_yaml)
-    print(get_files(loaded_yaml))
+    print(get_content_list(loaded_yaml))
