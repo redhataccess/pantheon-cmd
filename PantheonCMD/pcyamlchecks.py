@@ -36,23 +36,6 @@ def load_doc(yaml_file):
             sys.exit(2)
 
 
-def get_attribute_file_validation_results(attribute_file):
-    """Validate attributes file."""
-    report = Report()
-
-    for path in attribute_file:
-        with open(path, 'r') as file:
-            original = file.read()
-            stripped = Regex.MULTI_LINE_COMMENT.sub('', original)
-            stripped = Regex.SINGLE_LINE_COMMENT.sub('', stripped)
-
-            icons_check(report, stripped, path)
-            toc_check(report, stripped, path)
-            nbsp_check(report, stripped, path)
-
-    return report
-
-
 def get_yaml_errors(yaml_schema, yaml_doc):
     # load validator with custom error handler
     v = Validator(yaml_schema, error_handler=CustomErrorHandler())
@@ -89,14 +72,21 @@ def get_yaml_errors(yaml_schema, yaml_doc):
             attribute_file_validation.print_report()
 
 
-def remove_duplicates(files):
-    file_list = []
+def get_attribute_file_validation_results(attribute_file):
+    """Validate attributes file."""
+    report = Report()
 
-    for file in files:
-        if file not in file_list:
-            file_list.append(file)
+    for path in attribute_file:
+        with open(path, 'r') as file:
+            original = file.read()
+            stripped = Regex.MULTI_LINE_COMMENT.sub('', original)
+            stripped = Regex.SINGLE_LINE_COMMENT.sub('', stripped)
 
-    return file_list
+            icons_check(report, stripped, path)
+            toc_check(report, stripped, path)
+            nbsp_check(report, stripped, path)
+
+    return report
 
 
 def get_files(yaml_doc, var):
@@ -119,6 +109,16 @@ def get_files(yaml_doc, var):
     return included_files
 
 
+def remove_duplicates(files):
+    file_list = []
+
+    for file in files:
+        if file not in file_list:
+            file_list.append(file)
+
+    return file_list
+
+
 def get_content_list(yaml_doc):
 
     included_files = get_files(yaml_doc, 'included')
@@ -127,9 +127,11 @@ def get_content_list(yaml_doc):
     includes = remove_duplicates(included_files)
     excludes = remove_duplicates(excluded_files)
 
-    content_list = [x for x in includes if x not in excludes]
+    for i in excludes:
+        if i in includes:
+            includes.remove(i)
 
-    return content_list
+    return includes
 
 
 def yaml_validation(yaml_file):
