@@ -8,6 +8,7 @@ from cerberus.errors import BasicErrorHandler
 from pcchecks import Regex, icons_check, toc_check, nbsp_check
 from pcvalidator import Report
 import glob
+import re
 
 
 class CustomErrorHandler(BasicErrorHandler):
@@ -88,6 +89,30 @@ def get_yaml_errors(yaml_schema, yaml_doc):
             attribute_file_validation.print_report()
 
 
+def get_files(yaml_doc):
+    included_files = []
+    file_list = []
+    wildcards = re.compile(r'[*?\[\]]')
+
+    for yaml_dict in yaml_doc['variants']:
+        for include in yaml_dict['files']['included']:
+            if wildcards.search(include):
+                expanded_items = glob.glob(include)
+                if expanded_items:
+                    for expanded_item in expanded_items:
+                        included_files.append(expanded_item)
+                else:
+                    continue
+            else:
+                included_files.append(include)
+
+        for file in included_files:
+            if file not in file_list:
+                file_list.append(file)
+
+    return included_files
+
+
 def yaml_validation(yaml_file):
     """Validate pv2.yml; get path to attributes while we're at it."""
     # define path to script
@@ -99,3 +124,4 @@ def yaml_validation(yaml_file):
 
     get_yaml_size(yaml_file)
     get_yaml_errors(schema, loaded_yaml)
+    print(get_files(loaded_yaml))
