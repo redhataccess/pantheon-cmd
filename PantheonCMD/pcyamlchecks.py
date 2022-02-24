@@ -104,16 +104,17 @@ def get_files(yaml_doc, var):
     wildcards = re.compile(r'[*?\[\]]')
 
     for yaml_dict in yaml_doc['variants']:
-        for include in yaml_dict['files'][var]:
-            if wildcards.search(include):
-                expanded_items = glob.glob(include)
-                if expanded_items:
-                    for expanded_item in expanded_items:
-                        included_files.append(expanded_item)
+        if var in yaml_dict['files']:
+            for include in yaml_dict['files'][var]:
+                if wildcards.search(include):
+                    expanded_items = glob.glob(include)
+                    if expanded_items:
+                        for expanded_item in expanded_items:
+                            included_files.append(expanded_item)
+                    else:
+                        continue
                 else:
-                    continue
-            else:
-                included_files.append(include)
+                    included_files.append(include)
 
     return included_files
 
@@ -121,12 +122,14 @@ def get_files(yaml_doc, var):
 def get_content_list(yaml_doc):
 
     included_files = get_files(yaml_doc, 'included')
-    #excluded_files = get_files(yaml_doc, 'excluded')
+    excluded_files = get_files(yaml_doc, 'excluded')
 
     includes = remove_duplicates(included_files)
-    #excludes = remove_duplicates(excluded_files)
+    excludes = remove_duplicates(excluded_files)
 
-    return includes
+    content_list = [x for x in includes if x not in excludes]
+
+    return content_list
 
 
 def yaml_validation(yaml_file):
