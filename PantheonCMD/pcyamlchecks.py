@@ -301,6 +301,54 @@ def sort_no_prefix_files(yaml_doc):
             else:
                 undetermined_file_type.append(path)
 
+    confused_files = []
+
+    prefix_assemblies = get_prefix_assemblies(yaml_doc)
+
+    for path in prefix_assemblies:
+        with open(path, "r") as file:
+            original = file.read()
+            stripped = Regex.MULTI_LINE_COMMENT.sub('', original)
+            stripped = Regex.SINGLE_LINE_COMMENT.sub('', stripped)
+            stripped = Regex.CODE_BLOCK_DASHES.sub('', stripped)
+            stripped = Regex.CODE_BLOCK_DOTS.sub('', stripped)
+            stripped = Regex.INTERNAL_IFDEF.sub('', stripped)
+            checks(report, stripped, original, path)
+            icons_check(report, stripped, path)
+            toc_check(report, stripped, path)
+
+            if re.findall(Regex.MODULE_TYPE, stripped):
+                confused_files.append(path)
+                nesting_in_modules_check(report, stripped, path)
+                add_res_section_module_check(report, stripped, path)
+            else:
+                nesting_in_assemblies_check(report, stripped, path)
+                add_res_section_assembly_check(report, stripped, path)
+
+    prefix_modules = get_prefix_modules(yaml_doc)
+    for path in prefix_modules:
+        with open(path, "r") as file:
+            original = file.read()
+            stripped = Regex.MULTI_LINE_COMMENT.sub('', original)
+            stripped = Regex.SINGLE_LINE_COMMENT.sub('', stripped)
+            stripped = Regex.CODE_BLOCK_DASHES.sub('', stripped)
+            stripped = Regex.CODE_BLOCK_DOTS.sub('', stripped)
+            stripped = Regex.INTERNAL_IFDEF.sub('', stripped)
+            checks(report, stripped, original, path)
+            icons_check(report, stripped, path)
+            toc_check(report, stripped, path)
+
+            if re.findall(Regex.ASSEMBLY_TYPE, stripped):
+                confused_files.append(path)
+                nesting_in_assemblies_check(report, stripped, path)
+                add_res_section_assembly_check(report, stripped, path)
+            else:
+                nesting_in_modules_check(report, stripped, path)
+                add_res_section_module_check(report, stripped, path)
+
+    if confused_files:
+        printing_build_yml_error("files that have missmathed name prefix and content type tag. Content type tag takes precident. The files were checked according to the tag", confused_files)
+
     if undetermined_file_type:
         printing_build_yml_error('files that can not be classifiyed as modules or assemblies', undetermined_file_type)
 
