@@ -6,10 +6,11 @@ import yaml
 from cerberus import Validator, errors
 from cerberus.errors import BasicErrorHandler
 from pcchecks import Regex, icons_check, toc_check, nbsp_check
-from pcvalidator import Report
+#from pcvalidator import Report
 import glob
 import re
 import subprocess
+from pcchecks import Regex, checks, nesting_in_modules_check, nesting_in_assemblies_check, add_res_section_module_check, add_res_section_assembly_check, icons_check, toc_check
 
 
 class CustomErrorHandler(BasicErrorHandler):
@@ -21,10 +22,35 @@ class CustomErrorHandler(BasicErrorHandler):
 
 
 def printing_build_yml_error(msg, *files):
-    print('\nERROR: Your build.yml contains the following files or directories that do not {}:\n'.format(msg))
+    print('\nERROR: Your build.yml contains the following {}:\n'.format(msg))
     for file in files:
         if file:
             print('\t', file)
+
+
+class Report():
+    """Create and print report. thank u J."""
+
+    def __init__(self):
+        """Create placeholder for problem description."""
+        self.report = {}
+        self.count = 0
+
+    def create_report(self, category, file_path):
+        """Generate report."""
+        self.count += 1
+        if not category in self.report:
+            self.report[category] = []
+        self.report[category].append(file_path)
+
+    def print_report(self):
+
+        """Print report."""
+        separator = "\n\t"
+
+        for category, files in self.report.items():
+            print("\nERROR: {} found in the following files:".format(category))
+            print('\t' + separator.join(files))
 
 
 def get_yaml_size(yaml_file):
@@ -151,7 +177,7 @@ def get_attribute_file_errors(yaml_doc):
     exiting_attribute_files = get_exist(attribute_files)
 
     if missing_attribute_files:
-        printing_build_yml_error("exist in your repository", missing_attribute_files)
+        printing_build_yml_error("files or directories that do not exist in your repository", missing_attribute_files)
 
     if exiting_attribute_files:
         for item in attribute_files:
@@ -160,7 +186,7 @@ def get_attribute_file_errors(yaml_doc):
             if not file_path.startswith("_"):
                 if "/_" not in file_path:
                     if not file_name.startswith("_"):
-                        printing_build_yml_error("follow the attribute naming conventions. Attribute files or directory they are stored in should start with an undescore", item)
+                        printing_build_yml_error("files or directories that do not follow the attribute naming conventions. Attribute files or directory they are stored in should start with an undescore", item)
 
         attribute_validation = validate_attribute_files(exiting_attribute_files)
 
@@ -191,7 +217,7 @@ def get_content_list(yaml_doc):
     missing_excludes = get_missing_files(yaml_doc, 'excluded')
 
     if missing_includes or missing_excludes:
-        printing_build_yml_error("exist in your repository", missing_includes, missing_excludes)
+        printing_build_yml_error("files or directories that do not exist in your repository", missing_includes, missing_excludes)
 
     included = get_exitsing_files(yaml_doc, 'included')
     excluded = get_exitsing_files(yaml_doc, 'excluded')
@@ -246,20 +272,39 @@ def get_undefined_content(yaml_doc):
 
 def sort_no_prefix_files(yaml_doc):
     undefined_content = get_undefined_content(yaml_doc)
+    undetermined_file_type = []
+    report = Report()
 
     for path in undefined_content:
         with open(path, 'r') as file:
             original = file.read()
             stripped = Regex.MULTI_LINE_COMMENT.sub('', original)
             stripped = Regex.SINGLE_LINE_COMMENT.sub('', stripped)
+            stripped = Regex.CODE_BLOCK_DASHES.sub('', stripped)
+            stripped = Regex.CODE_BLOCK_DOTS.sub('', stripped)
+            stripped = Regex.INTERNAL_IFDEF.sub('', stripped)
 
             if re.findall(Regex.MODULE_TYPE, stripped):
-                print('module')
+                checks(report, stripped, original, path)
+                icons_check(report, stripped, path)
+                toc_check(report, stripped, path)
+                nesting_in_modules_check(report, stripped, path)
+                add_res_section_module_check(report, stripped, path)
+
             elif re.findall(Regex.ASSEMBLY_TYPE, stripped):
-                print('assembly')
+                checks(report, stripped, original, path)
+                icons_check(report, stripped, path)
+                toc_check(report, stripped, path)
+                nesting_in_assemblies_check(report, stripped, path)
+                add_res_section_assembly_check(report, stripped, path)
+
             else:
-                print('no clue')
-                print(path)
+                undetermined_file_type.append(path)
+
+    if undetermined_file_type:
+        printing_build_yml_error('files that can not be classifiyed as modules or assemblies', undetermined_file_type)
+
+    return report
 
 
 def yaml_validation(yaml_file):
@@ -273,4 +318,7 @@ def yaml_validation(yaml_file):
     get_yaml_size(yaml_file)
     get_yaml_errors(schema, loaded_yaml)
     get_attribute_file_errors(loaded_yaml)
-    sort_no_prefix_files(loaded_yaml)
+    no_prefix_files_validation = sort_no_prefix_files(loaded_yaml)
+
+    if no_prefix_files_validation.count != 0:
+        no_prefix_files_validation.print_report()
