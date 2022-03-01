@@ -174,7 +174,7 @@ def get_attribute_file_errors(yaml_doc):
     exiting_attribute_files = get_exist(attribute_files)
 
     if missing_attribute_files:
-        printing_build_yml_error("files or directories that do not exist in your repository", missing_attribute_files)
+        printing_build_yml_error("attribute files that do not exist in your repository", missing_attribute_files)
 
     if exiting_attribute_files:
         for item in attribute_files:
