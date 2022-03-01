@@ -5,12 +5,9 @@ import sys
 import yaml
 from cerberus import Validator, errors
 from cerberus.errors import BasicErrorHandler
-from pcchecks import Regex, icons_check, toc_check, nbsp_check
-#from pcvalidator import Report
-import glob
+from pcchecks import Regex, icons_check, toc_check, nbsp_check, checks, nesting_in_modules_check, nesting_in_assemblies_check, add_res_section_module_check, add_res_section_assembly_check
 import re
 import subprocess
-from pcchecks import Regex, checks, nesting_in_modules_check, nesting_in_assemblies_check, add_res_section_module_check, add_res_section_assembly_check, icons_check, toc_check
 
 
 class CustomErrorHandler(BasicErrorHandler):
