@@ -20,7 +20,8 @@ class Regex:
     """Define regular expresiions for the checks."""
 
     INCLUDE = re.compile(r'include::.*\]\n')
-    MODULE_TYPE = re.compile(r':_module-type: (PROCEDURE|CONCEPT|REFERENCE)')
+    MODULE_TYPE = re.compile(r':_content-type: (PROCEDURE|CONCEPT|REFERENCE)')
+    ASSEMBLY_TYPE = re.compile(r':_content-type: ASSEMBLY')
     PREFIX_ASSEMBLIES = re.compile(r'.*\/assembly.*\.adoc')
     PREFIX_MODULES = re.compile(r'.*\/con.*\.adoc|.*\/proc.*\.adoc|.*\/ref.*\.adoc')
     # should exclude pseudo vanilla like <<some content>>

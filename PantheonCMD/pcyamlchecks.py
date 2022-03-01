@@ -128,27 +128,6 @@ def get_files_bash(file_path):
     return files
 
 
-def get_md5sum(file_path):
-    command = ("md5sum  " + file_path + " | cut -d\  -f1")
-    process = subprocess.run(command, stdout=subprocess.PIPE, shell=True).stdout
-    md5sum = process.strip().decode('utf-8').split('\n')
-
-    return md5sum
-
-
-def get_unique_files(files):
-    md5sum_list = []
-    unique_files = []
-
-    for file in files:
-        md5sum = get_md5sum(file)
-        if md5sum not in md5sum_list:
-            md5sum_list.append(md5sum)
-            unique_files.append(file)
-
-    return unique_files
-
-
 def validate_attribute_files(attribute_files):
     """Validate attributes file."""
     report = Report()
@@ -189,6 +168,24 @@ def get_attribute_file_errors(yaml_doc):
             attribute_validation.print_report()
 
 
+def get_realpath(files):
+    unique_files = []
+
+    for file in files:
+        real_path = os.path.realpath(file)
+        if real_path not in unique_files:
+            unique_files.append(real_path)
+
+    files = []
+
+    pwd = os.getcwd()
+    for i in unique_files:
+        relative_path = os.path.relpath(i, pwd)
+        files.append(relative_path)
+
+    return files
+
+
 def get_content_list(yaml_doc):
     missing_includes = get_missing_files(yaml_doc, 'included')
     missing_excludes = get_missing_files(yaml_doc, 'excluded')
@@ -199,28 +196,20 @@ def get_content_list(yaml_doc):
     included = get_exitsing_files(yaml_doc, 'included')
     excluded = get_exitsing_files(yaml_doc, 'excluded')
 
-    unique_includes = get_unique_files(included)
-    unique_excludes = get_unique_files(excluded)
-
-    md5sum_exc_list = []
-    unique_files = []
-
-    for item in unique_excludes:
-        md5sum_exc = get_md5sum(item)
-        md5sum_exc_list.append(md5sum_exc)
+    unique_includes = get_realpath(included)
+    unique_excludes = get_realpath(excluded)
 
     for item in unique_includes:
-        md5sum_inc = get_md5sum(item)
-        if md5sum_inc not in md5sum_exc_list:
-            unique_files.append(item)
+        if item in unique_excludes:
+            unique_includes.remove(item)
 
-    return unique_files
+    return unique_includes
 
 
-def sort_content_list(yaml_doc):
+def sort_prefix_files(yaml_doc):
     prefix_assembly = []
     prefix_modules = []
-    unidentifiyed_content = []
+    undefined_content = []
 
     content_list = get_content_list(yaml_doc)
 
@@ -232,13 +221,48 @@ def sort_content_list(yaml_doc):
             elif file_name.startswith(("proc_", "con_", "ref_", "proc-", "con-", "ref-")):
                 prefix_modules.append(item)
             else:
-                unidentifiyed_content.append(item)
+                undefined_content.append(item)
 
-    return prefix_assembly, prefix_modules, unidentifiyed_content
+    return prefix_assembly, prefix_modules, undefined_content
+
+
+def get_prefix_assemblies(yaml_doc):
+    prefix_assembly, prefix_modules, undefined_content = sort_prefix_files(yaml_doc)
+
+    return prefix_assembly
+
+
+def get_prefix_modules(yaml_doc):
+    prefix_assembly, prefix_modules, undefined_content = sort_prefix_files(yaml_doc)
+
+    return prefix_modules
+
+
+def get_undefined_content(yaml_doc):
+    prefix_assembly, prefix_modules, undefined_content = sort_prefix_files(yaml_doc)
+
+    return undefined_content
+
+
+def sort_no_prefix_files(yaml_doc):
+    undefined_content = get_undefined_content(yaml_doc)
+
+    for path in undefined_content:
+        with open(path, 'r') as file:
+            original = file.read()
+            stripped = Regex.MULTI_LINE_COMMENT.sub('', original)
+            stripped = Regex.SINGLE_LINE_COMMENT.sub('', stripped)
+
+            if re.findall(Regex.MODULE_TYPE, stripped):
+                print('module')
+            elif re.findall(Regex.ASSEMBLY_TYPE, stripped):
+                print('assembly')
+            else:
+                print('no clue')
+                print(path)
 
 
 def yaml_validation(yaml_file):
-    """Validate build.yml; get path to attributes while we're at it."""
     # define path to script
     path_to_script = os.path.dirname(os.path.realpath(__file__))
     # load schema
@@ -249,5 +273,4 @@ def yaml_validation(yaml_file):
     get_yaml_size(yaml_file)
     get_yaml_errors(schema, loaded_yaml)
     get_attribute_file_errors(loaded_yaml)
-
-    sort_content_list(loaded_yaml)
+    sort_no_prefix_files(loaded_yaml)
