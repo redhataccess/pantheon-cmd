@@ -210,12 +210,6 @@ def get_realpath(files):
 
 
 def get_content_list(yaml_doc):
-    missing_includes = get_missing_files(yaml_doc, 'included')
-    missing_excludes = get_missing_files(yaml_doc, 'excluded')
-
-    if missing_includes or missing_excludes:
-        printing_build_yml_error("files or directories that do not exist in your repository", missing_includes, missing_excludes)
-
     included = get_exitsing_files(yaml_doc, 'included')
     excluded = get_exitsing_files(yaml_doc, 'excluded')
 
@@ -227,6 +221,15 @@ def get_content_list(yaml_doc):
             unique_includes.remove(item)
 
     return unique_includes
+
+
+def get_fake_path_files(yaml_doc):
+    missing_includes = get_missing_files(yaml_doc, 'included')
+    missing_excludes = get_missing_files(yaml_doc, 'excluded')
+
+    missing_files = missing_excludes + missing_includes
+    if missing_files:
+        printing_build_yml_error("files or directories that do not exist in your repository", missing_files)
 
 
 def sort_prefix_files(yaml_doc):
@@ -367,6 +370,7 @@ def yaml_validation(yaml_file):
     get_yaml_size(yaml_file)
     get_yaml_errors(schema, loaded_yaml)
     get_attribute_file_errors(loaded_yaml)
+    get_fake_path_files(loaded_yaml)
     validation = file_validation(loaded_yaml)
 
     if validation.count != 0:
