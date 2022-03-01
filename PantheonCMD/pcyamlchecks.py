@@ -270,7 +270,7 @@ def get_undefined_content(yaml_doc):
     return undefined_content
 
 
-def sort_no_prefix_files(yaml_doc):
+def file_validation(yaml_doc):
     undefined_content = get_undefined_content(yaml_doc)
     undetermined_file_type = []
     report = Report()
@@ -281,6 +281,7 @@ def sort_no_prefix_files(yaml_doc):
             stripped = Regex.MULTI_LINE_COMMENT.sub('', original)
             stripped = Regex.SINGLE_LINE_COMMENT.sub('', stripped)
             stripped = Regex.CODE_BLOCK_DASHES.sub('', stripped)
+            stripped = Regex.CODE_BLOCK_TWO_DASHES.sub('', stripped)
             stripped = Regex.CODE_BLOCK_DOTS.sub('', stripped)
             stripped = Regex.INTERNAL_IFDEF.sub('', stripped)
 
@@ -311,6 +312,7 @@ def sort_no_prefix_files(yaml_doc):
             stripped = Regex.MULTI_LINE_COMMENT.sub('', original)
             stripped = Regex.SINGLE_LINE_COMMENT.sub('', stripped)
             stripped = Regex.CODE_BLOCK_DASHES.sub('', stripped)
+            stripped = Regex.CODE_BLOCK_TWO_DASHES.sub('', stripped)
             stripped = Regex.CODE_BLOCK_DOTS.sub('', stripped)
             stripped = Regex.INTERNAL_IFDEF.sub('', stripped)
             checks(report, stripped, original, path)
@@ -329,9 +331,11 @@ def sort_no_prefix_files(yaml_doc):
     for path in prefix_modules:
         with open(path, "r") as file:
             original = file.read()
+            original = file.read()
             stripped = Regex.MULTI_LINE_COMMENT.sub('', original)
             stripped = Regex.SINGLE_LINE_COMMENT.sub('', stripped)
             stripped = Regex.CODE_BLOCK_DASHES.sub('', stripped)
+            stripped = Regex.CODE_BLOCK_TWO_DASHES.sub('', stripped)
             stripped = Regex.CODE_BLOCK_DOTS.sub('', stripped)
             stripped = Regex.INTERNAL_IFDEF.sub('', stripped)
             checks(report, stripped, original, path)
@@ -366,7 +370,7 @@ def yaml_validation(yaml_file):
     get_yaml_size(yaml_file)
     get_yaml_errors(schema, loaded_yaml)
     get_attribute_file_errors(loaded_yaml)
-    no_prefix_files_validation = sort_no_prefix_files(loaded_yaml)
+    validation = file_validation(loaded_yaml)
 
-    if no_prefix_files_validation.count != 0:
-        no_prefix_files_validation.print_report()
+    if validation.count != 0:
+        validation.print_report()
