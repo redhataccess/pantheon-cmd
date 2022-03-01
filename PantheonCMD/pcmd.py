@@ -112,35 +112,6 @@ if __name__ == "__main__":
                 # call yaml file validation + attribute file validation
                 yaml_validation('build.yml')
 
-                exists = get_not_exist(pantheon_repo.get_content())
-
-                if exists:
-
-                    print("\nYour build.yml contains the following files that do not exist in your repository:\n")
-
-                    for exist in exists:
-
-                        print('\t' + exist)
-
-                    print("\nTotal: ", str(len(exists)))
-
-                files_found = get_exist(pantheon_repo.get_content())
-                modules_found = pantheon_repo.get_existing_content("modules")
-                assemblies_found = pantheon_repo.get_existing_content("assemblies")
-
-                validate = validation(files_found, modules_found, assemblies_found)
-
-                if validate.count != 0:
-                    print("\nYour build.yml contains the following files that did not pass validation:\n")
-                    validate.print_report()
-                    sys.exit(2)
-                else:
-                    print("All files passed validation.")
-
-            else:
-
-                print("ERROR: You must run this command from the same directory as the build.yml file.\n")
-                sys.exit(1)
 
     # Exit if not a Pantheon V2 repository
     if repo_location:
