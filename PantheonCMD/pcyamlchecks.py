@@ -120,7 +120,7 @@ def get_files(yaml_doc, var):
     missing_files = []
 
     for yaml_dict in yaml_doc['variants']:
-        for subkey in yaml_dict['files'] == var:
+        for subkey in yaml_dict['files']:
             if subkey == var:
                 for include in yaml_dict['files'][var]:
                     content = get_files_bash(include)
