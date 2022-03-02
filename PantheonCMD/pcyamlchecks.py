@@ -5,7 +5,7 @@ import sys
 import yaml
 from cerberus import Validator, errors
 from cerberus.errors import BasicErrorHandler
-from pcchecks import Regex, icons_check, toc_check, nbsp_check, checks, nesting_in_modules_check, nesting_in_assemblies_check, add_res_section_module_check, add_res_section_assembly_check
+from pcchecks import Regex, icons_check, toc_check, nbsp_check, checks, nesting_in_modules_check, add_res_section_module_check, add_res_section_assembly_check
 import re
 import subprocess
 
@@ -296,7 +296,6 @@ def file_validation(yaml_doc):
                 checks(report, stripped, original, path)
                 icons_check(report, stripped, path)
                 toc_check(report, stripped, path)
-                nesting_in_assemblies_check(report, stripped, path)
                 add_res_section_assembly_check(report, stripped, path)
 
             else:
@@ -324,7 +323,6 @@ def file_validation(yaml_doc):
                 nesting_in_modules_check(report, stripped, path)
                 add_res_section_module_check(report, stripped, path)
             else:
-                nesting_in_assemblies_check(report, stripped, path)
                 add_res_section_assembly_check(report, stripped, path)
 
     prefix_modules = get_prefix_modules(yaml_doc)
@@ -344,7 +342,6 @@ def file_validation(yaml_doc):
 
             if re.findall(Regex.ASSEMBLY_TYPE, stripped):
                 confused_files.append(path)
-                nesting_in_assemblies_check(report, stripped, path)
                 add_res_section_assembly_check(report, stripped, path)
             else:
                 nesting_in_modules_check(report, stripped, path)

@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from pcchecks import Regex, checks, nesting_in_modules_check, nesting_in_assemblies_check, add_res_section_module_check, add_res_section_assembly_check, icons_check, toc_check
+from pcchecks import Regex, checks, nesting_in_modules_check, add_res_section_module_check, add_res_section_assembly_check, icons_check, toc_check
 import sys
 
 
@@ -64,7 +64,6 @@ def validation(files_found, modules_found, assemblies_found):
             stripped = Regex.CODE_BLOCK_DASHES.sub('', stripped)
             stripped = Regex.CODE_BLOCK_DOTS.sub('', stripped)
             stripped = Regex.INTERNAL_IFDEF.sub('', stripped)
-            nesting_in_assemblies_check(report, stripped, path)
             add_res_section_assembly_check(report, stripped, path)
 
     return report
