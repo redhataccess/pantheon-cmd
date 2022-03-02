@@ -179,7 +179,7 @@ def get_attribute_file_errors(yaml_doc):
         printing_build_yml_error("attribute files that do not exist in your repository", missing_attribute_files)
 
     if exiting_attribute_files:
-        for item in attribute_files:
+        for item in exiting_attribute_files:
             file_name = os.path.basename(item)
             file_path = os.path.dirname(item)
             if not file_path.startswith("_"):
@@ -207,6 +207,16 @@ def get_realpath(files):
     for i in unique_files:
         relative_path = os.path.relpath(i, pwd)
         files.append(relative_path)
+
+    for item in files:
+        file_name = os.path.basename(item)
+        file_path = os.path.dirname(item)
+        if file_path.startswith("_"):
+            files.remove(item)
+        elif "/_" in file_path:
+            files.remove(item)
+        elif file_name.startswith("_"):
+            files.remove(item)
 
     return files
 
