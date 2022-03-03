@@ -175,7 +175,7 @@ def get_attribute_file_errors(yaml_doc):
             if not file_path.startswith("_"):
                 if "/_" not in file_path:
                     if not file_name.startswith("_"):
-                        printing_build_yml_error("files or directories that do not follow the attribute naming conventions. Attribute files or directory they are stored in should start with an undescore", item)
+                        printing_build_yml_error("files or directories that do not follow the attribute naming conventions. Attribute files or directory they are stored in should start with an underscore", item)
 
         attribute_validation = validate_attribute_files(exiting_attribute_files)
 
@@ -319,10 +319,10 @@ def file_validation(yaml_doc):
                     add_res_section_module_check(report, stripped, path)
 
     if confused_files:
-        printing_build_yml_error("files that have missmathed name prefix and content type tag. Content type tag takes precident. The files were checked according to the tag", confused_files)
+        printing_build_yml_error("files that have mismatched name prefix and content type tag. Content type tag takes precedence. The files were checked according to the tag", confused_files)
 
     if undetermined_file_type:
-        printing_build_yml_error('files that can not be classifiyed as modules or assemblies', undetermined_file_type)
+        printing_build_yml_error('files that can not be classified as modules or assemblies', undetermined_file_type)
 
     return report
 
