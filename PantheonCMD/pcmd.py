@@ -68,7 +68,7 @@ if __name__ == "__main__":
     # Action - generate a build.yml file
     if args.command == 'generate':
         path_to_script = os.path.dirname(os.path.realpath(__file__))
-        call("sh " + path_to_script + "/pv2yml-generator.sh", shell=True)
+        call("bash " + path_to_script + "/buildyml-generator.sh", shell=True)
         sys.exit(0)
 
     # Action - validate yaml syntax, validate yaml keys and values
