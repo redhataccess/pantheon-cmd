@@ -94,30 +94,31 @@ def get_attribute_files(yaml_doc):
     return attribute_files
 
 
-def get_existence(files):
+def get_existence(path, files):
     """Return a list of found files and a list of not found files."""
-    files_found = []
-    files_not_found = []
+    missing_files = []
+    exiting_files = []
 
     for item in files:
-        if os.path.exists(item):
-            files_found.append(item)
+        file = path + '/' + item
+        if os.path.exists(file):
+            exiting_files.append(item)
         else:
-            files_not_found.append(item)
+            missing_files.append(item)
 
-    return files_found, files_not_found
+    return exiting_files, missing_files
 
 
-def get_files_bash(file_path):
+def get_files_bash(yaml_path, file_path):
     """Expand filepaths."""
-    command = ("find  " + file_path + " -type f 2>/dev/null")
+    command = ("find  "+ yaml_path + '/' + file_path + " -type f 2>/dev/null")
     process = subprocess.run(command, stdout=subprocess.PIPE, shell=True).stdout
     files = process.strip().decode('utf-8').split('\n')
 
     return files
 
 
-def get_files(yaml_doc, var):
+def get_files(yaml_path, yaml_doc, var):
     """Get files listed in the build.yml."""
     content_list = []
     missing_files = []
@@ -128,7 +129,7 @@ def get_files(yaml_doc, var):
                 continue
 
             for include in yaml_dict['files'][var]:
-                content = get_files_bash(include)
+                content = get_files_bash(yaml_path, include)
                 if not content:
                     continue
 
@@ -143,27 +144,28 @@ def get_files(yaml_doc, var):
     return content_list, missing_files
 
 
-def validate_attribute_files(attribute_files):
+def validate_attribute_files(path, attribute_files):
     """Validate attributes file."""
     report = Report()
 
-    for path in attribute_files:
-        with open(path, 'r') as file:
-            original = file.read()
+    for item in attribute_files:
+        file = path + '/' + item
+        with open(file, 'r') as f:
+            original = f.read()
             stripped = Regex.MULTI_LINE_COMMENT.sub('', original)
             stripped = Regex.SINGLE_LINE_COMMENT.sub('', stripped)
 
-            icons_check(report, stripped, path)
-            toc_check(report, stripped, path)
-            nbsp_check(report, stripped, path)
+            icons_check(report, stripped, item)
+            toc_check(report, stripped, item)
+            nbsp_check(report, stripped, item)
 
     return report
 
 
-def get_attribute_file_errors(yaml_doc):
+def get_attribute_file_errors(yaml_doc, path):
     """Report errors found with attribute files."""
     attribute_files = get_attribute_files(yaml_doc)
-    missing_attribute_files, exiting_attribute_files = get_existence(attribute_files)
+    exiting_attribute_files, missing_attribute_files = get_existence(path, attribute_files)
 
     if missing_attribute_files:
         printing_build_yml_error("attribute files that do not exist in your repository", missing_attribute_files)
@@ -177,7 +179,7 @@ def get_attribute_file_errors(yaml_doc):
                     if not file_name.startswith("_"):
                         printing_build_yml_error("files or directories that do not follow the attribute naming conventions. Attribute files or directory they are stored in should start with an underscore", item)
 
-        attribute_validation = validate_attribute_files(exiting_attribute_files)
+        attribute_validation = validate_attribute_files(path, exiting_attribute_files)
 
         if attribute_validation.count != 0:
             attribute_validation.print_report()
@@ -220,10 +222,10 @@ def get_realpath(files):
     return files
 
 
-def get_content_list(yaml_doc):
+def get_content_list(yaml_path, yaml_doc):
     """Get a unique list of included files with removed excludes."""
-    included, fake_path_includes = get_files(yaml_doc, 'included')
-    excluded, fake_path_excludes = get_files(yaml_doc, 'excluded')
+    included, fake_path_includes = get_files(yaml_path, yaml_doc, 'included')
+    excluded, fake_path_excludes = get_files(yaml_path, yaml_doc, 'excluded')
 
     unique_includes = get_realpath(included)
     unique_excludes = get_realpath(excluded)
@@ -235,23 +237,23 @@ def get_content_list(yaml_doc):
     return unique_includes
 
 
-def get_fake_path_files(yaml_doc):
+def get_fake_path_files(yaml_path, yaml_doc):
     """Error out on fake filepaths in build.yml"""
-    included, fake_path_includes = get_files(yaml_doc, 'included')
-    excluded, fake_path_excludes = get_files(yaml_doc, 'excluded')
+    included, fake_path_includes = get_files(yaml_path, yaml_doc, 'included')
+    excluded, fake_path_excludes = get_files(yaml_path, yaml_doc, 'excluded')
 
     missing_files = fake_path_excludes + fake_path_includes
     if missing_files:
         printing_build_yml_error("files or directories that do not exist in your repository", missing_files)
 
 
-def sort_prefix_files(yaml_doc):
+def sort_prefix_files(yaml_path, yaml_doc):
     """Get a list of assemblies, modulesa, and unidentifiyed files."""
     prefix_assembly = []
     prefix_modules = []
     undefined_content = []
 
-    content_list = get_content_list(yaml_doc)
+    content_list = get_content_list(yaml_path, yaml_doc)
 
     for item in content_list:
         if item.endswith('.adoc'):
@@ -266,9 +268,9 @@ def sort_prefix_files(yaml_doc):
     return prefix_assembly, prefix_modules, undefined_content
 
 
-def file_validation(yaml_doc):
+def file_validation(yaml_path, yaml_doc):
     """Validate all files."""
-    prefix_assembly, prefix_modules, undefined_content = sort_prefix_files(yaml_doc)
+    prefix_assembly, prefix_modules, undefined_content = sort_prefix_files(yaml_path, yaml_doc)
 
     all_files = prefix_assembly + prefix_modules + undefined_content
 
@@ -327,7 +329,7 @@ def file_validation(yaml_doc):
     return report
 
 
-def yaml_validation(yaml_file):
+def yaml_validation(yaml_file, path_to_yaml):
     """Execute yml and general validation and report errors."""
     # define path to script
     path_to_script = os.path.dirname(os.path.realpath(__file__))
@@ -338,9 +340,9 @@ def yaml_validation(yaml_file):
 
     get_yaml_size(yaml_file)
     get_yaml_errors(schema, loaded_yaml)
-    get_attribute_file_errors(loaded_yaml)
-    get_fake_path_files(loaded_yaml)
-    validation = file_validation(loaded_yaml)
+    get_attribute_file_errors(loaded_yaml, path_to_yaml)
+    get_fake_path_files(path_to_yaml, loaded_yaml)
+    validation = file_validation(path_to_yaml, loaded_yaml)
 
     if validation.count != 0:
         validation.print_report()
