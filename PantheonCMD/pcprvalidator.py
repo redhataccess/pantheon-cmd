@@ -6,7 +6,7 @@ import os
 import sys
 import subprocess
 import re
-from pcchecks import Regex
+from enki_checks import Regex
 
 
 if subprocess.call(["git", "branch"], stderr=subprocess.STDOUT, stdout=open(os.devnull, 'w')) != 0:

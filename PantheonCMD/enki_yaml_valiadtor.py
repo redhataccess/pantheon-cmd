@@ -5,7 +5,7 @@ import sys
 import yaml
 from cerberus import Validator, errors
 from cerberus.errors import BasicErrorHandler
-from pcchecks import Regex, icons_check, toc_check, nbsp_check, checks, nesting_in_modules_check, add_res_section_module_check, add_res_section_assembly_check
+from enki_checks import Regex, icons_check, toc_check, nbsp_check, checks, nesting_in_modules_check, add_res_section_module_check, add_res_section_assembly_check
 import re
 import subprocess
 
@@ -111,7 +111,7 @@ def get_existence(path, files):
 
 def get_files_bash(yaml_path, file_path):
     """Expand filepaths."""
-    command = ("find  "+ yaml_path + '/' + file_path + " -type f 2>/dev/null")
+    command = ("find  " + yaml_path + '/' + file_path + " -type f 2>/dev/null")
     process = subprocess.run(command, stdout=subprocess.PIPE, shell=True).stdout
     files = process.strip().decode('utf-8').split('\n')
 
@@ -262,6 +262,8 @@ def sort_prefix_files(yaml_path, yaml_doc):
                 prefix_assembly.append(item)
             elif file_name.startswith(("proc_", "con_", "ref_", "proc-", "con-", "ref-")):
                 prefix_modules.append(item)
+            elif file_name.startswith(("snip_", "snip-")):
+                continue
             else:
                 undefined_content.append(item)
 
@@ -346,3 +348,4 @@ def yaml_validation(yaml_file, path_to_yaml):
 
     if validation.count != 0:
         validation.print_report()
+        sys.exit(2)
