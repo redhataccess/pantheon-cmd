@@ -52,7 +52,7 @@ def file_validation(files):
     """Validate all files."""
     attribute_file, prefix_assembly, prefix_modules, undefined_content = sort_prefix_files(files)
 
-    all_files = prefix_assembly + prefix_modules + undefined_content
+    all_files = attribute_file + prefix_assembly + prefix_modules + undefined_content
 
     undetermined_file_type = []
     confused_files = []
@@ -69,9 +69,13 @@ def file_validation(files):
             stripped = Regex.CODE_BLOCK_DOTS.sub('', stripped)
             stripped = Regex.INTERNAL_IFDEF.sub('', stripped)
 
-            checks(report, stripped, original, path)
             icons_check(report, stripped, path)
             toc_check(report, stripped, path)
+
+            if path in attribute_file:
+                nbsp_check(report, stripped, path)
+            else:
+                checks(report, stripped, original, path)
 
             if path in undefined_content:
                 if re.findall(Regex.MODULE_TYPE, stripped):
