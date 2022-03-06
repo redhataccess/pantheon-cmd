@@ -9,7 +9,7 @@ import sys
 
 from pcutil import PantheonRepo, get_not_exist, get_exist, is_pantheon_repo
 from pcvalidator import validation
-from pcyamlchecks import yaml_validation
+from enki_yaml_valiadtor import yaml_validation
 from subprocess import call
 from pcprvalidator import get_changed_files, get_all_modules, get_all_assemblies, get_undetermined_files, get_no_prefix_files
 
@@ -42,14 +42,14 @@ def parse_args():
     parser_b = subparsers.add_parser('clean', help='Clean the build directory.')
 
     # 'Duplicates' command
-    parser_c = subparsers.add_parser('duplicates', help='Enumerate duplicate entries in your pantheon2.yml file.')
+    parser_c = subparsers.add_parser('duplicates', help='Enumerate duplicate entries in your build.yml file.')
 
     # 'Validate' command
-    parser_d = subparsers.add_parser('validate', help='Validate entries in your pantheon2.yml file.')
+    parser_d = subparsers.add_parser('validate', help='Validate entries in your build.yml file.')
     parser_d.add_argument('--mr', action='store_true', help='Validate files commited on a merge request.')
 
     # 'Generate' command
-    parser_e = subparsers.add_parser('generate', help='Generate pantheon2.yml file from a template.')
+    parser_e = subparsers.add_parser('generate', help='Generate build.yml file from a template.')
 
     return parser.parse_args()
 
@@ -65,10 +65,10 @@ if __name__ == "__main__":
 
     repo_location = is_pantheon_repo()
 
-    # Action - generate a pantheon2.yml file
+    # Action - generate a build.yml file
     if args.command == 'generate':
         path_to_script = os.path.dirname(os.path.realpath(__file__))
-        call("sh " + path_to_script + "/pv2yml-generator.sh", shell=True)
+        call("bash " + path_to_script + "/buildyml-generator.sh", shell=True)
         sys.exit(0)
 
     # Action - validate yaml syntax, validate yaml keys and values
@@ -107,40 +107,11 @@ if __name__ == "__main__":
 
             pantheon_repo = PantheonRepo(repo_location)
 
-            if os.path.exists('pantheon2.yml'):
+            if os.path.exists('build.yml'):
 
                 # call yaml file validation + attribute file validation
-                yaml_validation('pantheon2.yml')
+                yaml_validation('build.yml')
 
-                exists = get_not_exist(pantheon_repo.get_content())
-
-                if exists:
-
-                    print("\nYour pantheon2.yml contains the following files that do not exist in your repository:\n")
-
-                    for exist in exists:
-
-                        print('\t' + exist)
-
-                    print("\nTotal: ", str(len(exists)))
-
-                files_found = get_exist(pantheon_repo.get_content())
-                modules_found = pantheon_repo.get_existing_content("modules")
-                assemblies_found = pantheon_repo.get_existing_content("assemblies")
-
-                validate = validation(files_found, modules_found, assemblies_found)
-
-                if validate.count != 0:
-                    print("\nYour pantheon2.yml contains the following files that did not pass validation:\n")
-                    validate.print_report()
-                    sys.exit(2)
-                else:
-                    print("All files passed validation.")
-
-            else:
-
-                print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")
-                sys.exit(1)
 
     # Exit if not a Pantheon V2 repository
     if repo_location:
@@ -154,15 +125,11 @@ if __name__ == "__main__":
     # Action - preview
     if args.command == 'preview':
 
-        # Validate the pantheon2.yml file
-        yaml_validation(pantheon_repo.yaml_file_location)
-      
-        # Set the output format
         if args.format == 'pdf':
                 output_format = 'pdf'
         else:
                 output_format = 'html'
-      
+
         # Did a user specify a set of files? If so, only build those.
         if args.files:
             # Handle different interpretations of directories
@@ -183,9 +150,9 @@ if __name__ == "__main__":
                 pcbuild.prepare_build_directory()
                 pcbuild.copy_resources(pantheon_repo.get_existing_content("resources"))
                 pcbuild.build_content(content_subset, args.lang, output_format, pantheon_repo.repo_location, pantheon_repo.yaml_file_location)
-        # Otherwise, attempt to build all files in the pantheon2.yml file.
+        # Otherwise, attempt to build all files in the build.yml file.
         else:
-            if os.path.exists('pantheon2.yml'):
+            if os.path.exists('build.yml'):
                 content_types = ['assemblies','modules']
                 continue_run = True
 
@@ -197,7 +164,7 @@ if __name__ == "__main__":
                         print("Building %s...\n" % content_type)
                         continue_run = pcbuild.build_content(pantheon_repo.get_existing_content(content_type), args.lang, output_format, pantheon_repo.repo_location, pantheon_repo.yaml_file_location)
             else:
-                print("ERROR: You must run this command from the same directory as the pantheon2.yml file.\n")
+                print("ERROR: You must run this command from the same directory as the build.yml file.\n")
                 sys.exit(1)
 
     # Action - clean
@@ -216,7 +183,7 @@ if __name__ == "__main__":
 
         if duplicates:
 
-            print("Your pantheon2.yml contains the following duplicate entries:\n")
+            print("Your build.yml contains the following duplicate entries:\n")
 
             for duplicate in duplicates:
                 print(duplicate)

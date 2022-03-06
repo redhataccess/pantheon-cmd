@@ -9,6 +9,8 @@ class Tags:
     ABSTRACT = '[role="_abstract"]'
     ADD_RES = '[role="_additional-resources"]'
     EXPERIMENTAL = ':experimental:'
+    NBSP_ATT = ':nbsp: &nbsp'
+    NBSP_VAR = '{nbsp}'
     LVLOFFSET = ':leveloffset:'
     ICONS = ':icons:'
     TOC = ':toc:'
@@ -18,7 +20,8 @@ class Regex:
     """Define regular expresiions for the checks."""
 
     INCLUDE = re.compile(r'include::.*\]\n')
-    MODULE_TYPE = re.compile(r':_module-type: (PROCEDURE|CONCEPT|REFERENCE)')
+    MODULE_TYPE = re.compile(r':_content-type: (PROCEDURE|CONCEPT|REFERENCE)')
+    ASSEMBLY_TYPE = re.compile(r':_content-type: ASSEMBLY')
     PREFIX_ASSEMBLIES = re.compile(r'.*\/assembly.*\.adoc')
     PREFIX_MODULES = re.compile(r'.*\/con.*\.adoc|.*\/proc.*\.adoc|.*\/ref.*\.adoc')
     # should exclude pseudo vanilla like <<some content>>
@@ -36,6 +39,7 @@ class Regex:
     INTERNAL_IFDEF = re.compile(r'(ifdef::internal\[\])(.*\n)*?(endif::\[\])')
     CODE_BLOCK_DASHES = re.compile(r'(-{4,})(.*\n)*?(-{4,})')
     CODE_BLOCK_DOTS = re.compile(r'(\.{4,})(.*\n)*?(\.{4,})')
+    CODE_BLOCK_TWO_DASHES = re.compile(r'(-{2,})(.*\n)*?(-{2,})')
     HUMAN_READABLE_LABEL_XREF = re.compile(r'xref:.*\[]')
     HUMAN_READABLE_LABEL_LINK = re.compile(r'\b(?:https?|file|ftp|irc):\/\/[^\s\[\]<]*\[\]')
     NESTED_ASSEMBLY = re.compile(r'include.*assembly([a-z|0-9|A-Z|\-|_]+)\.adoc(\[.*\])')
@@ -62,6 +66,13 @@ def toc_check(report, stripped_file, file_path):
         report.create_report('toc attribute', file_path)
 
 
+def nbsp_check(report, stripped_file, file_path):
+    if re.findall(Tags.NBSP_ATT, stripped_file):
+        return
+    elif re.findall(Tags.NBSP_VAR, stripped_file):
+        report.create_report('`{nsbp}` attribute is used but not defined. `:nbsp: &nbsp` attribute is not', file_path)
+
+
 def vanilla_xref_check(stripped_file):
     """Check if the file contains vanilla xrefs."""
     if re.findall(Regex.VANILLA_XREF, stripped_file):
@@ -71,12 +82,6 @@ def vanilla_xref_check(stripped_file):
 def inline_anchor_check(stripped_file):
     """Check if the in-line anchor directly follows the level 1 heading."""
     if re.findall(Regex.INLINE_ANCHOR, stripped_file):
-        return True
-
-
-def var_in_title_check(stripped_file):
-    """Check if the file contains a variable in the level 1 heading."""
-    if re.findall(Regex.VAR_IN_TITLE, stripped_file):
         return True
 
 
@@ -121,14 +126,6 @@ def add_res_section_module_check(report, stripped_file, file_path):
         if not re.findall(Regex.ADD_RES_MODULE, stripped_file):
             report.create_report("Additional resources section for modules should be `.Additional resources`. Wrong section name was", file_path)
 
-
-# Standalone check on assemblies_found
-def nesting_in_assemblies_check(report, stripped_file, file_path):
-    """Check if file contains nested assemblies."""
-    if re.findall(Regex.NESTED_ASSEMBLY, stripped_file):
-        return report.create_report('nesting in assemblies. nesting', file_path)
-
-
 # Standalone check on assemblies_found
 def add_res_section_assembly_check(report, stripped_file, file_path):
     if re.findall(Regex.ADDITIONAL_RES, stripped_file):
@@ -142,9 +139,9 @@ def lvloffset_check(stripped_file):
         return True
 
 
-def abstarct_tag_none_or_multiple_check(stripped_file):
+def abstarct_tag_multiple_check(stripped_file):
     """Checks if the abstract tag is not set or set more than once."""
-    if stripped_file.count(Tags.ABSTRACT) != 1:
+    if stripped_file.count(Tags.ABSTRACT) > 1:
         return True
 
 
@@ -224,9 +221,6 @@ def checks(report, stripped_file, original_file, file_path):
     if inline_anchor_check(stripped_file):
         report.create_report('in-line anchors', file_path)
 
-    if var_in_title_check(stripped_file):
-        report.create_report('variable in the level 1 heading', file_path)
-
     if experimental_tag_check(stripped_file):
         report.create_report('files contain UI macros but the :experimental: tag not', file_path)
 
@@ -242,11 +236,8 @@ def checks(report, stripped_file, original_file, file_path):
     if lvloffset_check(stripped_file):
         report.create_report('unsupported use of :leveloffset:. unsupported includes', file_path)
 
-    if abstarct_tag_none_or_multiple_check(stripped_file):
-        if stripped_file.count(Tags.ABSTRACT) == 0:
-            report.create_report('abstract tag not', file_path)
-        else:
-            report.create_report('multiple abstract tags', file_path)
+    if abstarct_tag_multiple_check(stripped_file):
+        report.create_report('multiple abstract tags', file_path)
 
     if abstract_tag_check(original_file):
         if re.findall(Regex.FIRST_PARA, original_file):
