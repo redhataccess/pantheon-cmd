@@ -123,10 +123,7 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
                 matches = re.match(r'^endif::(.*?)\[\]', line)
 
                 if matches:
-                    if matches.group(1) == '':
-                        condition_block = False
-                    else:
-                        if matches.group(1) == conditions_set:
+                    if matches.group(1) == conditions_set:
                             conditions_set = ''
                             condition_block = False
                     continue
