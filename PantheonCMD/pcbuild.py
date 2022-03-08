@@ -140,9 +140,9 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
                 # Process section depth
                 elif re.match(r'^=+ \S+', line.strip()):
                     if depth > 0:
-                        lines.append(('=' * depth) + line.strip())
+                        lines.append(('=' * depth) + line.strip() + '\n')
                     else:
-                        lines.append(line.strip())
+                        lines.append(line.strip() + '\n')
                 # Process includes - recusrive
                 elif line.strip().startswith("include::"):
                     include_depth = 0
