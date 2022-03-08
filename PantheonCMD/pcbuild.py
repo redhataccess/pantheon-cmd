@@ -136,39 +136,34 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
                 matches = re.match(r'^ifdef::(\S+)\[(.*?)\]', line)
 
                 if matches:
-                    conditions_missing = False
+                    conditions_present = False
                     conditions = matches.group(1)
                     conditions_set = matches.group(1)
 
                     # Multiple conditions - single match is enough
-                    if conditions.__contains__('+'):
-                        conditions_list = conditions.split('+')
+                    if conditions.__contains__(','):
+                        conditions_list = conditions.split(',')
                         for condition in conditions_list:
-                            if not condition in attributes.keys():
-                                conditions_missing = True
+                            if condition in attributes.keys():
+                                conditions_present = True
                                 break
 
                     # Multiple conditions - all must match
-                    elif conditions.__contains__(','):
-                        conditions_missing = False
-                        conditions_list = conditions.split(',')
+                    elif conditions.__contains__('+'):
+                        conditions_present = True
+                        conditions_list = conditions.split('+')
                         for condition in conditions_list:
                             if not condition in attributes.keys():
-                                conditions_missing = True
-                            else:
-                                conditions_missing = True
-                        if conditions_missing:
-                            conditions_missing = False
+                                conditions_present = False
 
                     # Single condition
-                    elif not conditions in attributes.keys():
-                        conditions_missing = True
+                    elif conditions in attributes.keys():
+                        conditions_present = True
 
-                    if conditions_missing:
+                    if conditions_present:
                         if matches.group(2).strip() == '':
                             condition_block = True
-                    else:
-                        if matches.group(2).strip() != '':
+                        else:
                             lines.append(matches.group(2).strip() + '\n')
                     continue
 
@@ -180,25 +175,21 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
                     conditions = matches.group(1)
                     conditions_set = matches.group(1)
 
-                    # Multiple conditions - single match is enough
+                    # Multiple conditions - one condition must be missing
                     if conditions.__contains__(','):
                         conditions_list = conditions.split(',')
                         for condition in conditions_list:
-                            if condition in attributes.keys():
+                            if not condition in attributes.keys():
                                 conditions_missing = True
                                 break
 
-                    # Multiple conditions - all must match
+                    # Multiple conditions - all conditions must be missing
                     elif conditions.__contains__('+'):
-                        conditions_missing = False
+                        conditions_missing = True
                         conditions_list = conditions.split('+')
                         for condition in conditions_list:
                             if condition in attributes.keys():
-                                conditions_missing = True
-                            else:
-                                conditions_missing = True
-                        if conditions_missing:
-                            conditions_missing = False
+                                conditions_missing = False
 
                     # Single condition
                     elif conditions in attributes.keys():
@@ -207,8 +198,7 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
                     if conditions_missing:
                         if matches.group(2).strip() == '':
                             condition_block = True
-                    else:
-                        if matches.group(2).strip() != '':
+                        else:
                             lines.append(matches.group(2).strip() + '\n')
                     continue
 
@@ -309,7 +299,7 @@ def process_file(file_name, attributes, lang, output_format, content_count):
     if output_format == 'pdf':
         cmd = ('asciidoctor-pdf ' + language_code + ' -a pdf-themesdir=' + script_dir + '/templates/ -a pdf-theme=' + script_dir + '/templates/red-hat.yml -a pdf-fontsdir=' + script_dir + '/fonts' + ' ' + file_name + '.tmp').split()
     else:
-        cmd = ('asciidoctor -a toc! ' + language_code + ' -a imagesdir=images -T ' + script_dir + '/haml/ -E haml ' + file_name + '.tmp').split()
+        cmd = ('asciidoctor -a toc! -a icons! ' + language_code + ' -a imagesdir=images -T ' + script_dir + '/haml/ -E haml ' + file_name + '.tmp').split()
 
     # Build the content using AsciiDoctor
     output = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
