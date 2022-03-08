@@ -28,8 +28,7 @@ def build_content(content_files, lang, output_format, repo_location, yaml_file_l
     for item, members in main_yaml_file.items():
         if item == 'variants':
             attributes_file_location = repo_location + members[0]["path"]
-            with open(attributes_file_location,'r') as attributes_file:
-                attributes = parse_attributes(attributes_file.readlines())
+            attributes, lines = coalesce_document(attributes_file_location)
             break
     try:
         pool = concurrent.futures.ThreadPoolExecutor()
@@ -50,20 +49,6 @@ def build_content(content_files, lang, output_format, repo_location, yaml_file_l
     print()
 
     return True
-
-
-def parse_attributes(attributes):
-    """Read an attributes file and parse values into a key:value dictionary."""
-
-    final_attributes = {}
-
-    for line in attributes:
-        if re.match(r'^:\S+:.*', line):
-            attribute_name = line.split(":")[1].strip()
-            attribute_value = line.split(":")[2].strip()
-            final_attributes[attribute_name] = attribute_value
-
-    return final_attributes
 
 
 def copy_resources(resources):
@@ -116,6 +101,8 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
     """Combines the content from includes into a single, contiguous source file."""
     attributes = attributes or {}
     comment_block = False
+    condition_block = False
+    conditions_set = ''
     lines = []
     
     # Create a copy of global attributes
@@ -124,27 +111,123 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
 
     # Open the file, iterate over lines
     if os.path.exists(main_file):
+
         with open(main_file) as input_file:
+
             # Iterate over content
             for line in input_file:
-                # Process comment block start and finish
-                if line.strip().startswith('////'):
+
+                # CONDITIONS
+
+                # Line matches the end of a condition_block
+                matches = re.match(r'^endif::(.*?)\[\]', line)
+
+                if matches:
+                    if matches.group(1) == conditions_set:
+                            conditions_set = ''
+                            condition_block = False
+                    continue
+
+                # Line matches the middle of a condition block
+                if condition_block:
+                    continue
+
+                # Line matches the start of an ifdef condition
+                matches = re.match(r'^ifdef::(\S+)\[(.*?)\]', line)
+
+                if matches:
+                    conditions_present = False
+                    conditions = matches.group(1)
+                    conditions_set = matches.group(1)
+
+                    # Multiple conditions - single match is enough
+                    if conditions.__contains__(','):
+                        conditions_list = conditions.split(',')
+                        for condition in conditions_list:
+                            if condition in attributes.keys():
+                                conditions_present = True
+                                break
+
+                    # Multiple conditions - all must match
+                    elif conditions.__contains__('+'):
+                        conditions_present = True
+                        conditions_list = conditions.split('+')
+                        for condition in conditions_list:
+                            if not condition in attributes.keys():
+                                conditions_present = False
+
+                    # Single condition
+                    elif conditions in attributes.keys():
+                        conditions_present = True
+
+                    if conditions_present:
+                        if matches.group(2).strip() == '':
+                            condition_block = True
+                        else:
+                            lines.append(matches.group(2).strip() + '\n')
+                    continue
+
+                # Line matches the start of an ifndef condition
+                matches = re.match(r'^ifndef::(\S+)\[(.*?)\]', line)
+
+                if matches:
+                    conditions_missing = False
+                    conditions = matches.group(1)
+                    conditions_set = matches.group(1)
+
+                    # Multiple conditions - one condition must be missing
+                    if conditions.__contains__(','):
+                        conditions_list = conditions.split(',')
+                        for condition in conditions_list:
+                            if not condition in attributes.keys():
+                                conditions_missing = True
+                                break
+
+                    # Multiple conditions - all conditions must be missing
+                    elif conditions.__contains__('+'):
+                        conditions_missing = True
+                        conditions_list = conditions.split('+')
+                        for condition in conditions_list:
+                            if condition in attributes.keys():
+                                conditions_missing = False
+
+                    # Single condition
+                    elif conditions in attributes.keys():
+                        conditions_missing = True
+
+                    if conditions_missing:
+                        if matches.group(2).strip() == '':
+                            condition_block = True
+                        else:
+                            lines.append(matches.group(2).strip() + '\n')
+                    continue
+
+                # COMMENTS
+
+                # Line matches comment block start or finish
+                if re.match(r'^////.*', line.strip()):
                     comment_block = True if not comment_block else False
                     continue
-                # Process comment block continuation
+
+                # Line matches the middle of a comment block
                 elif comment_block:
                     continue
-                # Process inline comments
-                elif line.strip().startswith('//'):
+
+                # Line matches an inline comment
+                elif re.match(r'^//.*', line.strip()):
                     continue
-                # Process section depth
+
+                # OTHER CONDITIONS
+
+                # Line matches a section header; adjust depth
                 elif re.match(r'^=+ \S+', line.strip()):
                     if depth > 0:
                         lines.append(('=' * depth) + line.strip() + '\n')
                     else:
                         lines.append(line.strip() + '\n')
-                # Process includes - recusrive
-                elif line.strip().startswith("include::"):
+
+                # Line matches an include; process recusrively
+                elif re.match(r'^include::.*', line.strip()):
                     include_depth = 0
                     include_file = line.replace("include::", "").split("[")[0]
                     include_options = line.split("[")[1].split("]")[0].split(',')
@@ -152,12 +235,13 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
                         if include_option.__contains__("leveloffset=+"):
                             include_depth += int(include_option.split("+")[1])
                     # Replace attributes in includes, if their values are defined
-                    if re.match(r'^\{\S+\}.*', include_file):
+                    if re.match(r'.*\{\S+\}.*', include_file):
                         include_file = resolve_attribute_tree(include_file, attributes)
                     include_filepath = os.path.join(os.path.dirname(main_file), include_file)
                     attributes, include_lines = coalesce_document(include_filepath, attributes, include_depth, False)
                     lines.extend(include_lines)
-                # Build dictionary of found attributes
+
+                # Line matches an attribute declaration
                 elif re.match(r'^:\S+:.*', line):
                     attribute_name = line.split(":")[1].strip()
                     attribute_value = line.split(":")[2].strip()
@@ -166,6 +250,7 @@ def coalesce_document(main_file, attributes=None, depth=0, top_level=True):
                     lines.append(line)
                 else:
                     lines.append(line)
+
             # Add global attribute definitions if main file
             if top_level:
                 lines.insert(0,'\n\n')
@@ -214,7 +299,7 @@ def process_file(file_name, attributes, lang, output_format, content_count):
     if output_format == 'pdf':
         cmd = ('asciidoctor-pdf ' + language_code + ' -a pdf-themesdir=' + script_dir + '/templates/ -a pdf-theme=' + script_dir + '/templates/red-hat.yml -a pdf-fontsdir=' + script_dir + '/fonts' + ' ' + file_name + '.tmp').split()
     else:
-        cmd = ('asciidoctor -a toc! ' + language_code + ' -a imagesdir=images -T ' + script_dir + '/haml/ -E haml ' + file_name + '.tmp').split()
+        cmd = ('asciidoctor -a toc! -a icons! ' + language_code + ' -a imagesdir=images -T ' + script_dir + '/haml/ -E haml ' + file_name + '.tmp').split()
 
     # Build the content using AsciiDoctor
     output = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
