@@ -63,7 +63,7 @@ cp -r PantheonCMD /usr/local/bin
 
 echo 'Adding an alias to ~/.zshrc file...'
 
-alias pcmd="/usr/local/bin/python3 /usr/local/bin/PantheonCMD/pcmd.py $@"
+alias pcmd="/usr/bin/python3 /usr/local/bin/PantheonCMD/pcmd.py $@"
 
 echo 'Sourcing your ~/.zshrc file...'
 
