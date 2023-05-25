@@ -93,6 +93,7 @@ def prepare_build_directory():
     # Create a build directory
     os.makedirs('build')
     os.makedirs('build/images')
+    os.makedirs('build/tmp')
 
 
 def resolve_attribute_tree(content, attributes):
@@ -220,7 +221,10 @@ def process_file(file_name, attributes, lang, output_format, content_count):
     output = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # Delete the temporary copy
-    os.remove(file_name + '.tmp')
+    # os.remove(file_name + '.tmp')
+
+    # Move the coalesced AsciiDoc to the build directory
+    shutil.move(file_name.replace('.adoc', '.adoc.tmp'),'build/tmp/' + os.path.split(file_name)[1])
 
     # Move the output file to the build directory
     if output_format == 'pdf':
